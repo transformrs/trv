@@ -38,20 +38,6 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
-fn presenter_notes(input: &str) -> Value {
-    let output = std::process::Command::new("typst")
-        .arg("query")
-        .arg(&input)
-        .arg("<pdfpc>")
-        .arg("--field=value")
-        .output()
-        .expect("Failed to run typst presenter-notes command");
-
-    let text = String::from_utf8_lossy(&output.stdout);
-    let json = serde_json::from_str::<Value>(&text).expect("invalid json");
-    json
-}
-
 #[derive(Debug)]
 struct NewSlide {
     pub idx: u64,
@@ -77,8 +63,22 @@ impl NewSlide {
     }
 }
 
-fn presenter_notes_map(input: &str) -> Vec<NewSlide> {
-    let json = presenter_notes(input);
+fn query_presenter_notes(input: &str) -> Value {
+    let output = std::process::Command::new("typst")
+        .arg("query")
+        .arg(&input)
+        .arg("<pdfpc>")
+        .arg("--field=value")
+        .output()
+        .expect("Failed to run typst presenter-notes command");
+
+    let text = String::from_utf8_lossy(&output.stdout);
+    let json = serde_json::from_str::<Value>(&text).expect("invalid json");
+    json
+}
+
+fn presenter_notes(input: &str) -> Vec<NewSlide> {
+    let json = query_presenter_notes(input);
 
     let values = json.as_array().expect("Expected JSON array");
 
@@ -103,18 +103,10 @@ fn presenter_notes_map(input: &str) -> Vec<NewSlide> {
     slides
 }
 
-#[tokio::main]
-async fn main() {
-    let args = Arguments::parse();
-    if args.verbose {
-        init_subscriber(tracing::Level::DEBUG).unwrap();
-    } else {
-        init_subscriber(tracing::Level::INFO).unwrap();
-    }
-
+fn generate_pdf(input: &str) {
     let output = std::process::Command::new("typst")
         .arg("compile")
-        .arg(&args.input)
+        .arg(&input)
         .output()
         .expect("Failed to run typst compile command");
 
@@ -124,13 +116,18 @@ async fn main() {
         std::process::exit(1);
     }
 
-    println!("{}", String::from_utf8_lossy(&output.stdout));
+    tracing::info!("{}", String::from_utf8_lossy(&output.stdout));
+}
 
-    let val = presenter_notes(&args.input);
-    println!("{:?}", val);
-
-    let slides = presenter_notes_map(&args.input);
-    for slide in slides {
-        println!("{:?}", slide);
+#[tokio::main]
+async fn main() {
+    let args = Arguments::parse();
+    if args.verbose {
+        init_subscriber(tracing::Level::DEBUG).unwrap();
+    } else {
+        init_subscriber(tracing::Level::INFO).unwrap();
     }
+
+    generate_pdf(&args.input);
+    let slides = presenter_notes(&args.input);
 }
