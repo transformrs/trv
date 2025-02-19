@@ -4,13 +4,10 @@ set -euo pipefail
 
 export DEEPINFRA_KEY="$(cat test.env | grep DEEPINFRA_KEY | cut -d= -f2)"
 
-echo $DEEPINFRA_KEY
-
 PROMPT="
-transformrs is a Rust interface to multiple AI providers.
-It supports chat, text-to-image, and text-to-speech.
+What if you could show code not just in an example, but in a video?
 
-For 
+Videos are useful in transfering lots of information, especially to provide context to code examples.
 "
 
 echo $PROMPT | trf tts --model=hexgrad/Kokoro-82M \

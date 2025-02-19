@@ -5,7 +5,7 @@
 #set text(size: 25pt)
 
 #slide[
-    #polylux.pdfpc.speaker-note(
+    #toolbox.pdfpc.speaker-note(
     ```md
     What if you could show code not just in an example, but in a video?
 
@@ -17,13 +17,15 @@
 ]
 
 #slide[
-    #pdfpc.speaker-note(
+    #toolbox.pdfpc.speaker-note(
     ```md
     For example, this is example code for how to use the `transformrs` crate to talk to a large language model.
     
     As you can see, we load the `transformrs` crate and then request a chat completion.
     ```
     )
+
+    #set text(size: 20pt)
 
     ```rust
     use transformrs::chat;
