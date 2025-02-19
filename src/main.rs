@@ -1,8 +1,13 @@
 use clap::Parser;
 use serde_json;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 use tracing::subscriber::SetGlobalDefaultError;
+use transformrs;
+use transformrs::Keys;
+use transformrs::Provider;
 
 #[derive(clap::Subcommand)]
 enum Commands {}
@@ -108,7 +113,7 @@ fn generate_pdf(input: &str) {
         .arg("compile")
         .arg(&input)
         .output()
-        .expect("Failed to run typst compile command");
+        .expect("Failed to run typst compile");
 
     if !output.status.success() {
         eprintln!("Error running typst compile:");
@@ -116,7 +121,38 @@ fn generate_pdf(input: &str) {
         std::process::exit(1);
     }
 
-    tracing::info!("{}", String::from_utf8_lossy(&output.stdout));
+    if !output.stdout.is_empty() {
+        tracing::info!("{}", String::from_utf8_lossy(&output.stdout));
+    }
+}
+
+async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide) {
+    let provider = Provider::DeepInfra;
+    let key = keys.for_provider(&provider).unwrap();
+    let mut config = transformrs::text_to_speech::TTSConfig::default();
+    config.voice = Some("am_echo".to_string());
+    config.output_format = Some("mp3".to_string());
+    let msg = &slide.note;
+    let model = Some("hexgrad/Kokoro-82M");
+    let resp = transformrs::text_to_speech::tts(&key, &config, model, msg)
+        .await
+        .unwrap()
+        .structured()
+        .unwrap();
+    let bytes = resp.audio.clone();
+    let ext = resp.file_format;
+    let idx = slide.idx;
+    let path = Path::new(dir).join(format!("{idx}.{ext}"));
+    let mut file = File::create(path).unwrap();
+    file.write_all(&bytes).unwrap();
+}
+
+async fn generate_audio_files(dir: &str, slides: &Vec<NewSlide>) {
+    let keys = transformrs::load_keys(".env");
+    for slide in slides {
+        tracing::info!("Generating audio file for slide {}", slide.idx);
+        generate_audio_file(&keys, dir, &slide).await;
+    }
 }
 
 #[tokio::main]
@@ -128,6 +164,16 @@ async fn main() {
         init_subscriber(tracing::Level::INFO).unwrap();
     }
 
+    let dir = "_out";
+    let path = Path::new(dir);
+    if !path.exists() {
+        std::fs::create_dir_all(path).unwrap();
+    }
+
     generate_pdf(&args.input);
     let slides = presenter_notes(&args.input);
+    for slide in &slides {
+        println!("{:?}", slide);
+    }
+    generate_audio_files(dir, &slides).await;
 }

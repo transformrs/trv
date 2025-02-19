@@ -1,8 +1,9 @@
 **/target/
 **/*.rs.bk
 Cargo.lock
-test.env
+.env
 **/tmp*
 **/*.png
 **/*.jpg
 **/*.pdf
+_out
