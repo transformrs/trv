@@ -1,11 +1,10 @@
 use clap::Parser;
-use serde_json;
 use serde_json::Value;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
-use transformrs;
 use transformrs::Keys;
 use transformrs::Provider;
 
@@ -71,15 +70,14 @@ impl NewSlide {
 fn query_presenter_notes(input: &str) -> Value {
     let output = std::process::Command::new("typst")
         .arg("query")
-        .arg(&input)
+        .arg(input)
         .arg("<pdfpc>")
         .arg("--field=value")
         .output()
         .expect("Failed to run typst presenter-notes command");
 
     let text = String::from_utf8_lossy(&output.stdout);
-    let json = serde_json::from_str::<Value>(&text).expect("invalid json");
-    json
+    serde_json::from_str::<Value>(&text).expect("invalid json")
 }
 
 fn presenter_notes(input: &str) -> Vec<NewSlide> {
@@ -108,10 +106,14 @@ fn presenter_notes(input: &str) -> Vec<NewSlide> {
     slides
 }
 
-fn generate_pdf(input: &str) {
+fn generate_images(input: &PathBuf, dir: &str) {
     let output = std::process::Command::new("typst")
         .arg("compile")
-        .arg(&input)
+        .arg("--format=png")
+        .arg("--ppi=300")
+        .arg(format!("--root={}", dir))
+        .arg(input)
+        .arg(format!("{}/{{p}}.png", dir))
         .output()
         .expect("Failed to run typst compile");
 
@@ -151,8 +153,14 @@ async fn generate_audio_files(dir: &str, slides: &Vec<NewSlide>) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
         tracing::info!("Generating audio file for slide {}", slide.idx);
-        generate_audio_file(&keys, dir, &slide).await;
+        generate_audio_file(&keys, dir, slide).await;
     }
+}
+
+fn copy_input(input: &str, dir: &str) -> PathBuf {
+    let path = Path::new(dir).join("input.pdf");
+    std::fs::copy(input, &path).unwrap();
+    path
 }
 
 #[tokio::main]
@@ -169,8 +177,9 @@ async fn main() {
     if !path.exists() {
         std::fs::create_dir_all(path).unwrap();
     }
+    let input = copy_input(&args.input, dir);
 
-    generate_pdf(&args.input);
+    generate_images(&input, dir);
     let slides = presenter_notes(&args.input);
     for slide in &slides {
         println!("{:?}", slide);
