@@ -1,20 +1,19 @@
 use clap::Parser;
+use std::io::Read;
 use tracing::subscriber::SetGlobalDefaultError;
-use transformrs::Key;
 
 #[derive(clap::Subcommand)]
-enum Commands {
-}
+enum Commands {}
 
 #[derive(Parser)]
-#[command(
-    author,
-    version,
-    about = "Multimodal AI command line interface"
-)]
+#[command(author, version, about = "Text and image to video")]
 struct Arguments {
-    #[command(subcommand)]
-    command: Commands,
+    /// Path to the input file.
+    ///
+    /// If not provided, reads from stdin.
+    #[arg(short, long)]
+    input: Option<String>,
+
     /// Verbose output.
     ///
     /// The output of the logs is printed to stderr because the output is
@@ -26,15 +25,6 @@ struct Arguments {
 pub enum Task {
     #[allow(clippy::upper_case_acronyms)]
     TTS,
-}
-
-fn find_single_key(keys: transformrs::Keys) -> Key {
-    let keys = keys.keys;
-    if keys.len() != 1 {
-        eprintln!("Expected exactly one key, found {}", keys.len());
-        std::process::exit(1);
-    }
-    keys[0].clone()
 }
 
 /// Initialize logging with the given level.
@@ -57,5 +47,15 @@ async fn main() {
         init_subscriber(tracing::Level::INFO).unwrap();
     }
 
-    println!("Hello, world!");
+    let input = if let Some(input) = args.input {
+        std::fs::read_to_string(&input).expect("Failed to read from file")
+    } else {
+        let mut buffer = String::new();
+        std::io::stdin()
+            .read_to_string(&mut buffer)
+            .expect("Failed to read from stdin");
+        buffer
+    };
+
+    println!("input: {}", input);
 }
