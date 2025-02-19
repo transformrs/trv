@@ -5,3 +5,4 @@ test.env
 **/tmp*
 **/*.png
 **/*.jpg
+**/*.pdf
