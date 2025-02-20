@@ -1,24 +1,34 @@
 use std::path::Path;
 
-fn concat_video_clips(dir: &str, output: &str) {
-    let mut mp4_files = Vec::new();
+fn generate_concat_list(dir: &str) -> String {
+    let mut lines = Vec::new();
     let files = std::fs::read_dir(dir).expect("couldn't read dir");
     for file in files {
         let file = file.expect("couldn't read file");
         let path = file.path();
         if let Some(ext) = path.extension() {
             if ext == "mp4" {
-                mp4_files.push(path.to_str().unwrap().to_string());
+                let path = path.file_name().unwrap().to_str().unwrap();
+                let line = format!("file '{path}'");
+                lines.push(line);
             }
         }
     }
-    let files = mp4_files.join("|");
-    let input = format!("concat:{}", files);
-    println!("input: {}", input);
+    lines.join("\n")
+}
+
+fn write_concat_list(dir: &str, path: &str) {
+    let concat_list = generate_concat_list(dir);
+    std::fs::write(path, concat_list).expect("couldn't write concat list");
+}
+
+fn concat_video_clips(concat_list: &str, output: &str) {
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
+        .arg("-f")
+        .arg("concat")
         .arg("-i")
-        .arg(input)
+        .arg(concat_list)
         .arg("-c")
         .arg("copy")
         .arg(output)
@@ -75,6 +85,9 @@ fn create_video_clips(dir: &str) {
 pub fn create_video(dir: &str, output: &str) {
     create_video_clips(dir);
     let output = Path::new(dir).join(output);
-    let output = output.to_str().expect("couldn't convert path to string");
-    concat_video_clips(dir, output);
+    let output = output.to_str().unwrap();
+    let concat_list = Path::new(dir).join("concat_list.txt");
+    let concat_list = concat_list.to_str().unwrap();
+    write_concat_list(dir, concat_list);
+    concat_video_clips(concat_list, output);
 }
