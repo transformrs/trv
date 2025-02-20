@@ -148,7 +148,7 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide) {
         .unwrap();
     let bytes = resp.audio.clone();
     let ext = resp.file_format;
-    // Typst png files are start at one, while slide.idx at zero.
+    // Typst png files start at one, while slide.idx at zero.
     let idx = slide.idx + 1;
     let path = Path::new(dir).join(format!("{idx}.{ext}"));
     let mut file = File::create(path).unwrap();
