@@ -7,10 +7,7 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    
     What if you could show code not just in text, but in a video?
-
-    Videos are good for transfering lots of information.
     ```
     )
 
@@ -21,9 +18,9 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    For example, this is code for the `transformrs`-crate.
+    For example, let's look at some code.
     
-    As you can see, we load the crate and then request a chat completion.
+    Here, we load the `transformrs` crate and then request a chat completion.
     ```
     )
 

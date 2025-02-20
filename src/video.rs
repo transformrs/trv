@@ -22,7 +22,7 @@ fn write_concat_list(dir: &str, path: &str) {
     std::fs::write(path, concat_list).expect("couldn't write concat list");
 }
 
-fn concat_video_clips(concat_list: &str, output: &str) {
+fn concat_video_clips(concat_list: &str, output_path: &str) {
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
         .arg("-f")
@@ -31,38 +31,44 @@ fn concat_video_clips(concat_list: &str, output: &str) {
         .arg(concat_list)
         .arg("-c")
         .arg("copy")
-        .arg(output)
+        .arg(output_path)
         .output()
         .expect("Failed to run ffmpeg command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         tracing::error!("Failed to concat video clips: {stderr}");
+        std::process::exit(1);
     } else {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        tracing::info!("concat video clips: {stdout}");
+        tracing::info!("Concatenated video clips into {output_path}");
     }
 }
 
-fn create_video_clip(input_audio: &str, input_image: &str, output: &str) {
+fn create_video_clip(input_audio: &str, input_image: &str, output_path: &str) {
+    tracing::info!("Creating video clip {output_path}");
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
-        .arg("-i")
-        .arg(input_audio)
+        .arg("-loop")
+        .arg("1")
         .arg("-i")
         .arg(input_image)
+        .arg("-i")
+        .arg(input_audio)
         .arg("-c:v")
         .arg("libx264")
         .arg("-c:a")
-        .arg("aac")
-        .arg(output)
+        .arg("copy")
+        .arg("-shortest")
+        .arg("-tune")
+        .arg("stillimage")
+        .arg(output_path)
         .output()
         .expect("Failed to run ffmpeg command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         tracing::error!("Failed to create video clip: {stderr}");
+        std::process::exit(1);
     } else {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        tracing::info!("created video clip: {stdout}");
+        tracing::info!("Created video clip {output_path}");
     }
 }
 
