@@ -1,3 +1,5 @@
+mod video;
+
 use clap::Parser;
 use serde_json::Value;
 use std::fs::File;
@@ -143,7 +145,8 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide) {
         .unwrap();
     let bytes = resp.audio.clone();
     let ext = resp.file_format;
-    let idx = slide.idx;
+    // Typst png files are start at one, while slide.idx at zero.
+    let idx = slide.idx + 1;
     let path = Path::new(dir).join(format!("{idx}.{ext}"));
     let mut file = File::create(path).unwrap();
     file.write_all(&bytes).unwrap();
@@ -185,4 +188,5 @@ async fn main() {
         println!("{:?}", slide);
     }
     generate_audio_files(dir, &slides).await;
+    video::create_video_clips(dir);
 }
