@@ -7,7 +7,7 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    What if you could show code not just in text, but in a video?
+    ...... What if you could show code not just in text, but in a video?
     ```
     )
 
