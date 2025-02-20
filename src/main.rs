@@ -188,5 +188,5 @@ async fn main() {
         println!("{:?}", slide);
     }
     generate_audio_files(dir, &slides).await;
-    video::create_video_clips(dir);
+    video::create_video(dir, "out.mp4");
 }
