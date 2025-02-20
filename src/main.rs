@@ -136,6 +136,7 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide) {
     let mut config = transformrs::text_to_speech::TTSConfig::default();
     config.voice = Some("am_echo".to_string());
     config.output_format = Some("mp3".to_string());
+    config.speed = Some(1.3);
     let msg = &slide.note;
     let model = Some("hexgrad/Kokoro-82M");
     let resp = transformrs::text_to_speech::tts(&key, &config, model, msg)

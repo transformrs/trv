@@ -7,21 +7,23 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    What if you could show code not just in an example, but in a video?
+    
+    What if you could show code not just in text, but in a video?
 
-    Videos are useful in transfering lots of information, especially to provide context to code examples.
+    Videos are good for transfering lots of information.
     ```
     )
 
-    Code examples or code videos?
+    \
+    #align(center)[Code examples or code videos?]
 ]
 
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    For example, this is example code for how to use the `transformrs` crate to talk to a large language model.
+    For example, this is code for the `transformrs`-crate.
     
-    As you can see, we load the `transformrs` crate and then request a chat completion.
+    As you can see, we load the crate and then request a chat completion.
     ```
     )
 
