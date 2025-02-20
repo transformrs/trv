@@ -26,10 +26,10 @@ fn concat_video_clips(dir: &str, output: &str) {
         .expect("Failed to run ffmpeg command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        tracing::error!("Failed to concat video clips: {}", stderr);
+        tracing::error!("Failed to concat video clips: {stderr}");
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
-        tracing::info!("concat video clips: {}", stdout);
+        tracing::info!("concat video clips: {stdout}");
     }
 }
 
@@ -49,10 +49,10 @@ fn create_video_clip(input_audio: &str, input_image: &str, output: &str) {
         .expect("Failed to run ffmpeg command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        tracing::error!("Failed to create video clip: {}", stderr);
+        tracing::error!("Failed to create video clip: {stderr}");
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
-        tracing::info!("created video clip: {}", stdout);
+        tracing::info!("created video clip: {stdout}");
     }
 }
 
