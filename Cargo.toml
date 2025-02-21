@@ -1,11 +1,11 @@
 [package]
-name = "tv"
+name = "trv"
 version = "0.1.0"
 edition = "2021"
 authors = ["Rik Huijzer"]
 license = "MIT"
 description = "Transform text and images into video"
-repository = "https://github.com/transformrs/tv"
+repository = "https://github.com/transformrs/trv"
 publish = false
 
 [dependencies]

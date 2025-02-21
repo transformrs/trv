@@ -60,7 +60,7 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bo
     let config = transformrs::text_to_speech::TTSConfig {
         voice: Some("am_liam".to_string()),
         output_format: Some("mp3".to_string()),
-        speed: Some(1.3),
+        speed: Some(1.25),
         other: Some(other),
         ..Default::default()
     };
