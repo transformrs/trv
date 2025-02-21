@@ -2,8 +2,8 @@ use assert_cmd::Command;
 use std::io::BufRead;
 use transformrs::Provider;
 
-pub fn trf() -> Command {
-    Command::cargo_bin("trf").unwrap()
+pub fn bin() -> Command {
+    Command::cargo_bin("tv").unwrap()
 }
 
 #[allow(dead_code)]
