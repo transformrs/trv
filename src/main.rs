@@ -3,22 +3,9 @@ mod image;
 mod video;
 
 use clap::Parser;
-use clap::ValueEnum;
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
-enum Task {
-    /// Generate audio files only.
-    Audio,
-    /// Generate images only.
-    Image,
-    /// Generate video only.
-    Video,
-    /// Generate full presentation.
-    Full,
-}
 
 #[derive(Parser)]
 #[command(author, version, about = "Text and image to video")]
@@ -34,10 +21,6 @@ struct Arguments {
     /// Out directory.
     #[arg(long, default_value = "_out")]
     out_dir: String,
-
-    /// Command to run.
-    #[arg(long, value_enum)]
-    task: Option<Task>,
 }
 
 /// Initialize logging with the given level.
@@ -66,7 +49,7 @@ async fn main() {
         init_subscriber(tracing::Level::INFO).unwrap();
     }
 
-    let dir = "_out";
+    let dir = &args.out_dir;
     let path = Path::new(dir);
     if !path.exists() {
         std::fs::create_dir_all(path).unwrap();

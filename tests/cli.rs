@@ -15,10 +15,10 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn audio() -> Result<(), Box<dyn std::error::Error>> {
+fn full() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = bin();
     cmd.arg("--input=tests/test.typ");
-    cmd.arg("--task=audio");
+    cmd.arg("--out-dir=tests/_out");
     cmd.assert().success().stdout(predicate::str::contains(
         "Generating audio file for slide 0",
     ));

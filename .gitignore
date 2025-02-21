@@ -6,4 +6,5 @@ Cargo.lock
 **/*.png
 **/*.jpg
 **/*.pdf
-_out
+_out/
+tests/_out/
