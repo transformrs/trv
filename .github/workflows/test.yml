@@ -23,7 +23,9 @@ jobs:
         with:
           prefix-key: 'test'
 
-      - run: cargo binstall typst-cli
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: typst-cli
 
       - run: |
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > test.env
