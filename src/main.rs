@@ -38,8 +38,11 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
+/// Copy the input file to the output directory.
+///
+/// Typst requires the input to be present in the project directory.
 fn copy_input(input: &str, dir: &str) -> PathBuf {
-    let path = Path::new(dir).join("input.pdf");
+    let path = Path::new(dir).join("input.typ");
     std::fs::copy(input, &path).unwrap();
     path
 }
@@ -63,5 +66,5 @@ async fn main() {
     image::generate_images(&input, dir);
     let slides = image::presenter_notes(&args.input);
     audio::generate_audio_files(dir, &slides, args.cache).await;
-    video::create_video(dir, "out.mp4");
+    video::generate_video(dir, "out.mp4");
 }
