@@ -23,6 +23,8 @@ jobs:
         with:
           prefix-key: 'test'
 
+      - run: cargo binstall typst-cli
+
       - run: |
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > test.env
           echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> test.env
