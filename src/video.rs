@@ -1,24 +1,19 @@
 use std::path::Path;
 
-fn generate_concat_list(dir: &str) -> String {
+fn generate_concat_list(dir: &str, video_clips: &Vec<String>) -> String {
     let mut lines = Vec::new();
-    let files = std::fs::read_dir(dir).expect("couldn't read dir");
-    for file in files {
-        let file = file.expect("couldn't read file");
-        let path = file.path();
-        if let Some(ext) = path.extension() {
-            if ext == "mp4" {
-                let path = path.file_name().unwrap().to_str().unwrap();
-                let line = format!("file '{path}'");
-                lines.push(line);
-            }
-        }
+    for video_clip in video_clips {
+        let path = Path::new(dir).join(video_clip);
+        let filename = path.file_name().unwrap().to_str().unwrap();
+        let line = format!("file '{filename}'");
+        lines.push(line);
     }
+    lines.sort();
     lines.join("\n")
 }
 
-fn write_concat_list(dir: &str, path: &str) {
-    let concat_list = generate_concat_list(dir);
+fn write_concat_list(dir: &str, path: &str, video_clips: &Vec<String>) {
+    let concat_list = generate_concat_list(dir, video_clips);
     std::fs::write(path, concat_list).expect("couldn't write concat list");
 }
 
@@ -72,7 +67,8 @@ fn create_video_clip(input_audio: &str, input_image: &str, output_path: &str) {
     }
 }
 
-fn create_video_clips(dir: &str) {
+fn create_video_clips(dir: &str) -> Vec<String> {
+    let mut video_clips = Vec::new();
     let files = std::fs::read_dir(dir).expect("couldn't read dir");
     for file in files {
         let file = file.expect("couldn't read file");
@@ -83,17 +79,19 @@ fn create_video_clips(dir: &str) {
                 let input_image = &input_audio.replace(".mp3", ".png");
                 let output = &input_audio.replace(".mp3", ".mp4");
                 create_video_clip(input_audio, input_image, output);
+                video_clips.push(output.to_string());
             }
         }
     }
+    video_clips
 }
 
 pub fn generate_video(dir: &str, output: &str) {
-    create_video_clips(dir);
+    let video_clips = create_video_clips(dir);
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();
     let concat_list = Path::new(dir).join("concat_list.txt");
     let concat_list = concat_list.to_str().unwrap();
-    write_concat_list(dir, concat_list);
+    write_concat_list(dir, concat_list, &video_clips);
     concat_video_clips(concat_list, output);
 }
