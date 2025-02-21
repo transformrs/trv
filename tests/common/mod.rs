@@ -3,7 +3,7 @@ use std::io::BufRead;
 use transformrs::Provider;
 
 pub fn bin() -> Command {
-    Command::cargo_bin("tv").unwrap()
+    Command::cargo_bin("trv").unwrap()
 }
 
 #[allow(dead_code)]

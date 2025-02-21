@@ -10,7 +10,7 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("--help");
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("Usage: tv"));
+        .stdout(predicate::str::contains("Usage: trv"));
 
     Ok(())
 }
