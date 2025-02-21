@@ -54,7 +54,7 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig) -> bool {
 
 async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bool) {
     let provider = Provider::DeepInfra;
-    let key = keys.for_provider(&provider).unwrap();
+    let key = keys.for_provider(&provider).expect("no key for provider");
     let mut other = HashMap::new();
     other.insert("seed".to_string(), json!(42));
     let config = transformrs::text_to_speech::TTSConfig {
