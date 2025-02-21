@@ -15,13 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: |
-          rustup update stable
-          rustup default stable
+      - run: rustup update stable
+      - run: rustup default stable
 
       - uses: Swatinem/rust-cache@v2
         with:
           prefix-key: 'test'
+
+      - uses: FedericoCarboni/setup-ffmpeg@v3
 
       - uses: taiki-e/install-action@v2
         with:
@@ -35,4 +36,4 @@ jobs:
       - run: cargo test --all-features
 
       - name: Cleanup before Post Run
-        run: rm test.env
+        run: rm .env
