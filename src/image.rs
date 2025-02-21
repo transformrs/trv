@@ -1,8 +1,10 @@
 use std::path::PathBuf;
 
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::Value;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NewSlide {
     pub idx: u64,
     #[allow(dead_code)]

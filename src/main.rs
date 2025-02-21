@@ -21,6 +21,10 @@ struct Arguments {
     /// Out directory.
     #[arg(long, default_value = "_out")]
     out_dir: String,
+
+    /// Enable caching.
+    #[arg(long, default_value = "true")]
+    cache: bool,
 }
 
 /// Initialize logging with the given level.
@@ -58,6 +62,6 @@ async fn main() {
 
     image::generate_images(&input, dir);
     let slides = image::presenter_notes(&args.input);
-    audio::generate_audio_files(dir, &slides).await;
+    audio::generate_audio_files(dir, &slides, args.cache).await;
     video::create_video(dir, "out.mp4");
 }

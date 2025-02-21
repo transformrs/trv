@@ -15,8 +15,9 @@ futures-util = "0.3.31"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing-subscriber = "0.3"
 tracing = "0.1"
-transformrs = { git = "https://github.com/transformrs/transformrs", rev = "402f67eafa067bb2cef69e691e5da42ddd1d7d56" }
+transformrs = { git = "https://github.com/transformrs/transformrs", rev = "c28ba78" }
 serde_json = "1.0.138"
+serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 assert_cmd = "2"
