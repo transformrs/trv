@@ -18,6 +18,7 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn cache() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = tempdir()?;
+    println!("out_dir: {}", out_dir.path().to_str().unwrap());
 
     let mut cmd = bin();
     cmd.arg("--input=tests/test.typ");
