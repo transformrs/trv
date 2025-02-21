@@ -3,22 +3,9 @@ mod image;
 mod video;
 
 use clap::Parser;
-use clap::ValueEnum;
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
-enum Task {
-    /// Generate audio files only.
-    Audio,
-    /// Generate images only.
-    Image,
-    /// Generate video only.
-    Video,
-    /// Generate full presentation.
-    Full,
-}
 
 #[derive(Parser)]
 #[command(author, version, about = "Text and image to video")]
@@ -35,9 +22,9 @@ struct Arguments {
     #[arg(long, default_value = "_out")]
     out_dir: String,
 
-    /// Command to run.
-    #[arg(long, value_enum)]
-    task: Option<Task>,
+    /// Enable caching.
+    #[arg(long, default_value = "true")]
+    cache: bool,
 }
 
 /// Initialize logging with the given level.
@@ -51,8 +38,11 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
+/// Copy the input file to the output directory.
+///
+/// Typst requires the input to be present in the project directory.
 fn copy_input(input: &str, dir: &str) -> PathBuf {
-    let path = Path::new(dir).join("input.pdf");
+    let path = Path::new(dir).join("input.typ");
     std::fs::copy(input, &path).unwrap();
     path
 }
@@ -66,7 +56,7 @@ async fn main() {
         init_subscriber(tracing::Level::INFO).unwrap();
     }
 
-    let dir = "_out";
+    let dir = &args.out_dir;
     let path = Path::new(dir);
     if !path.exists() {
         std::fs::create_dir_all(path).unwrap();
@@ -75,6 +65,6 @@ async fn main() {
 
     image::generate_images(&input, dir);
     let slides = image::presenter_notes(&args.input);
-    audio::generate_audio_files(dir, &slides).await;
-    video::create_video(dir, "out.mp4");
+    audio::generate_audio_files(dir, &slides, args.cache).await;
+    video::generate_video(dir, "out.mp4");
 }

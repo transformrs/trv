@@ -18,7 +18,7 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    For example, here is some code.
+    For example, take this code.
     ```
     )
 

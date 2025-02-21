@@ -88,7 +88,7 @@ fn create_video_clips(dir: &str) {
     }
 }
 
-pub fn create_video(dir: &str, output: &str) {
+pub fn generate_video(dir: &str, output: &str) {
     create_video_clips(dir);
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();

@@ -15,20 +15,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: |
-          rustup update stable
-          rustup default stable
+      - run: rustup update stable
+      - run: rustup default stable
 
       - uses: Swatinem/rust-cache@v2
         with:
           prefix-key: 'test'
 
+      - uses: FedericoCarboni/setup-ffmpeg@v3
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: typst-cli
+
       - run: |
-          echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > test.env
-          echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> test.env
-          echo "OPENAI_KEY=${{ secrets.OPENAI_KEY }}" >> test.env
+          echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > .env
+          echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> .env
+          echo "OPENAI_KEY=${{ secrets.OPENAI_KEY }}" >> .env
 
       - run: cargo test --all-features
 
       - name: Cleanup before Post Run
-        run: rm test.env
+        run: rm .env
