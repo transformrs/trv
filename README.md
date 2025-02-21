@@ -37,10 +37,10 @@ Next, create a Typst presentation with speaker notes:
 ]
 ```
 
-Now, to create a video from the presentation, run:
+To create a video from the presentation, run:
 
-```sh
-trv --input=presentation.typ
+```raw
+$ trv --input=presentation.typ
  INFO Generating audio file for slide 0
  INFO Generating audio file for slide 1
  INFO Creating video clip _out/1.mp4
