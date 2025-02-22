@@ -29,8 +29,22 @@ struct Arguments {
     #[arg(long)]
     provider: Option<String>,
 
+    /// Model.
+    ///
+    /// For the OpenAI compatible API from Kokoros, use `tts-1`.
+    #[arg(long, default_value = "hexgrad/Kokoro-82M")]
+    model: String,
+
+    /// Voice.
+    ///
+    /// Note that DeepInfra at the time of writing supports more voices that
+    /// Kokoros. If Kokoros respond with an empty mp3 file (which ffmpeg then
+    /// crashes on), try a different voice.
+    #[arg(long, default_value = "am_adam")]
+    voice: String,
+
     /// Audio format.
-    /// 
+    ///
     /// This setting usually should not be necessary since ffmpeg can handle
     /// most formats, but can be useful to override the default value.
     #[arg(long, default_value = "mp3")]
@@ -99,7 +113,7 @@ async fn main() {
     let mut other = HashMap::new();
     other.insert("seed".to_string(), json!(42));
     let config = transformrs::text_to_speech::TTSConfig {
-        voice: Some("am_liam".to_string()),
+        voice: Some(args.voice.clone()),
         output_format: Some(args.audio_format.clone()),
         speed: Some(1.25),
         other: Some(other),
@@ -114,6 +128,6 @@ async fn main() {
 
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);
-    audio::generate_audio_files(&provider, dir, &slides, args.cache, &config).await;
+    audio::generate_audio_files(&provider, dir, &slides, args.cache, &config, &args.model).await;
     video::generate_video(dir, &slides, &config, "out.mp4");
 }

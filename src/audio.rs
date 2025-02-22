@@ -53,6 +53,7 @@ async fn generate_audio_file(
     slide: &NewSlide,
     cache: bool,
     config: &TTSConfig,
+    model: &String,
 ) {
     let provider = if let Some(provider) = provider {
         provider
@@ -69,7 +70,7 @@ async fn generate_audio_file(
         );
         return;
     }
-    let model = Some("hexgrad/Kokoro-82M");
+    let model = Some(model.as_str());
     let resp = transformrs::text_to_speech::tts(&provider, &key, &config, model, msg)
         .await
         .unwrap()
@@ -95,11 +96,12 @@ pub async fn generate_audio_files(
     slides: &Vec<NewSlide>,
     cache: bool,
     config: &TTSConfig,
+    model: &String,
 ) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
         let idx = crate::path::idx(slide);
         tracing::info!("Generating audio file for slide {idx}");
-        generate_audio_file(provider, &keys, dir, slide, cache, config).await;
+        generate_audio_file(provider, &keys, dir, slide, cache, config, model).await;
     }
 }
