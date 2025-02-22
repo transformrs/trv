@@ -26,9 +26,9 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
         "audio/1.opus",
         "audio/2.opus",
         "audio/1.audio.cache_key",
-        "video/1.mp4",
+        "video/1.mkv",
         "concat_list.txt",
-        "out.mp4",
+        "out.mkv",
     ];
     for file in &files {
         let path = Path::new(out_dir).join(file);
@@ -82,7 +82,7 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
         "video/1.mkv",
         "concat_list.txt",
         "out.mkv",
-        "out.mp4",
+        "release.mp4",
     ];
     for file in &files {
         let path = Path::new(out_dir).join(file);
@@ -98,6 +98,7 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("--input=tests/test.typ");
     cmd.arg("--provider=openai-compatible(kokoros.transformrs.org)");
     cmd.arg("--model=tts-1");
+    cmd.arg("--voice=bm_lewis");
     cmd.arg("--audio-format=wav");
     cmd.arg("--release");
     cmd.assert().success();

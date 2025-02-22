@@ -136,6 +136,6 @@ async fn main() {
     let output = "out.mkv";
     video::generate_video(dir, &slides, &config, output);
     if args.release {
-        video::generate_release_video(dir, output, "out.mp4");
+        video::generate_release_video(dir, output, "release.mp4");
     }
 }
