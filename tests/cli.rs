@@ -95,7 +95,6 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut cmd = bin();
-    cmd.env("OPENAI_COMPATIBLE_KEY", "test");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
     cmd.arg("--input=tests/test.typ");

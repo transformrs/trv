@@ -72,8 +72,12 @@ fn provider_from_str(s: &str) -> Provider {
         let s = s.strip_prefix("openai-compatible(").unwrap();
         let s = s.strip_suffix(")").unwrap();
         let mut domain = s.to_string();
-        if !domain.starts_with("https://") {
-            domain = format!("https://{}", domain);
+        if !domain.starts_with("https") {
+            if domain.contains("localhost") {
+                domain = format!("http://{}", domain);
+            } else {
+                domain = format!("https://{}", domain);
+            }
         }
         Provider::OpenAICompatible(domain)
     } else {

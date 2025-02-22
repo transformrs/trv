@@ -6,6 +6,7 @@ use serde::Serialize;
 use std::fs::File;
 use std::io::Write;
 use transformrs::text_to_speech::TTSConfig;
+use transformrs::Key;
 use transformrs::Keys;
 use transformrs::Provider;
 
@@ -58,7 +59,20 @@ async fn generate_audio_file(
     } else {
         &Provider::DeepInfra
     };
-    let key = keys.for_provider(provider).expect("no key for provider");
+    let key = match provider {
+        Provider::OpenAICompatible(domain) => {
+            // Yes the whole key and providers API from transformrs is a mess.
+            if domain.contains("kokoros.transformrs.org") {
+                Key {
+                    provider: Provider::OpenAICompatible(domain.to_string()),
+                    key: "test".to_string(),
+                }
+            } else {
+                keys.for_provider(provider).expect("no key for provider")
+            }
+        }
+        _ => keys.for_provider(provider).expect("no key for provider"),
+    };
     let msg = &slide.note;
     let ext = config.output_format.as_ref().unwrap();
     if cache && is_cached(dir, slide, config, ext) {
