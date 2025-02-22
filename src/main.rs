@@ -125,5 +125,6 @@ async fn main() {
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);
     audio::generate_audio_files(&provider, dir, &slides, args.cache, &config, &args.model).await;
-    video::generate_video(dir, &slides, &config, "out.mp4");
+    // Using mkv by default because it supports more audio formats.
+    video::generate_video(dir, &slides, &config, "out.mkv");
 }

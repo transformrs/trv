@@ -76,12 +76,12 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
 
     // Not deleting the dir to avoid cargo watch going into an infinite loop.
     let files = vec![
-        "audio/1.mp3",
-        "audio/2.mp3",
+        "audio/1.wav",
+        "audio/2.wav",
         "audio/1.audio.cache_key",
-        "video/1.mp4",
+        "video/1.mkv",
         "concat_list.txt",
-        "out.mp4",
+        "out.mkv",
     ];
     for file in &files {
         let path = Path::new(out_dir).join(file);
@@ -97,7 +97,7 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("--input=tests/test.typ");
     cmd.arg("--provider=openai-compatible(kokoros.transformrs.org)");
     cmd.arg("--model=tts-1");
-    cmd.arg("--audio-format=mp3");
+    cmd.arg("--audio-format=wav");
     cmd.assert().success();
 
     for file in &files {
