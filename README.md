@@ -37,7 +37,7 @@ Create a Typst presentation with speaker notes:
 ]
 ```
 
-To create a video from the presentation, run:
+To create a video from the presentation with DeepInfra, run:
 
 ```raw
 $ export DEEPINFRA_KEY="<YOUR KEY>"
@@ -53,6 +53,41 @@ $ trv --input=presentation.typ
 ```
 
 Now, the presentation is available as `_out/out.mp4`.
+
+To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
+See the [Kokoros](#kokoros) section for more information.
+
+A simple alternative is to use the hosted version at <https://kokoros.transformrs.org>.
+For example, this command creates a video using the hosted service:
+
+```raw
+$ trv --input=presentation.typ \
+    --provider=openai-compatible(kokoros.transformrs.org) \
+    --model=tts-1 \
+    --voice=bm_lewis \
+    --audio-format=wav \
+    --release
+```
+
+## Kokoros
+
+To use Kokoros locally, the easiest way is to use the Docker image.
+
+```sh
+$ git clone https://github.com/lucasjinreal/Kokoros.git
+
+$ cd Kokoros/
+
+$ docker build --rm -t kokoros .
+
+$ docker run -it --rm -p 3000:3000 kokoros openai
+```
+
+Then, you can use the Docker image as the provider:
+
+```raw
+$ trv --input=presentation.typ --provider=openai-compatible(localhost:3000)
+```
 
 ## Compatibility
 

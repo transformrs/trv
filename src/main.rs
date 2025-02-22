@@ -4,9 +4,12 @@ mod path;
 mod video;
 
 use clap::Parser;
+use serde_json::json;
+use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
+use transformrs::Provider;
 
 #[derive(Parser)]
 #[command(author, version, about = "Text and image to video")]
@@ -19,6 +22,34 @@ struct Arguments {
     #[arg(long)]
     verbose: bool,
 
+    /// Provider.
+    ///
+    /// Can be used to pass for example
+    /// `--provider=openai-compatible(kokoros.transformrs.org)`.
+    #[arg(long)]
+    provider: Option<String>,
+
+    /// Model.
+    ///
+    /// For the OpenAI compatible API from Kokoros, use `tts-1`.
+    #[arg(long, default_value = "hexgrad/Kokoro-82M")]
+    model: String,
+
+    /// Voice.
+    ///
+    /// Note that DeepInfra at the time of writing supports more voices that
+    /// Kokoros. If Kokoros respond with an empty file (which ffmpeg then
+    /// crashes on), try a different voice.
+    #[arg(long, default_value = "am_adam")]
+    voice: String,
+
+    /// Audio format.
+    ///
+    /// This setting usually should not be necessary since ffmpeg can handle
+    /// most formats, but can be useful to override the default value.
+    #[arg(long, default_value = "mp3")]
+    audio_format: String,
+
     /// Out directory.
     #[arg(long, default_value = "_out")]
     out_dir: String,
@@ -26,6 +57,32 @@ struct Arguments {
     /// Enable caching.
     #[arg(long, default_value = "true")]
     cache: bool,
+
+    /// Release.
+    ///
+    /// If true, attempt to convert the output video into a format that is more
+    /// widely supported.
+    #[arg(long, default_value = "false")]
+    release: bool,
+}
+
+// TODO: This logic should be in the transformrs crate as `Provider::from_str`.
+fn provider_from_str(s: &str) -> Provider {
+    if s.starts_with("openai-compatible(") {
+        let s = s.strip_prefix("openai-compatible(").unwrap();
+        let s = s.strip_suffix(")").unwrap();
+        let mut domain = s.to_string();
+        if !domain.starts_with("https") {
+            if domain.contains("localhost") {
+                domain = format!("http://{}", domain);
+            } else {
+                domain = format!("https://{}", domain);
+            }
+        }
+        Provider::OpenAICompatible(domain)
+    } else {
+        panic!("Unsupported provider: {}. Try not passing `--provider`.", s);
+    }
 }
 
 /// Initialize logging with the given level.
@@ -64,10 +121,25 @@ async fn main() {
     }
     let input = copy_input(&args.input, dir);
 
-    let audio_format = "opus";
+    let mut other = HashMap::new();
+    other.insert("seed".to_string(), json!(42));
+    let config = transformrs::text_to_speech::TTSConfig {
+        voice: Some(args.voice.clone()),
+        output_format: Some(args.audio_format.clone()),
+        speed: Some(1.25),
+        other: Some(other),
+        ..Default::default()
+    };
+
+    let provider = args.provider.map(|p| provider_from_str(&p));
 
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);
-    audio::generate_audio_files(dir, &slides, args.cache, audio_format).await;
-    video::generate_video(dir, &slides, audio_format, "out.mp4");
+    audio::generate_audio_files(&provider, dir, &slides, args.cache, &config, &args.model).await;
+    // Using mkv by default because it supports more audio formats.
+    let output = "out.mkv";
+    video::generate_video(dir, &slides, &config, output);
+    if args.release {
+        video::generate_release_video(dir, output, "release.mp4");
+    }
 }
