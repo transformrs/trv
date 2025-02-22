@@ -126,7 +126,7 @@ async fn main() {
     let config = transformrs::text_to_speech::TTSConfig {
         voice: Some(args.voice.clone()),
         output_format: Some(args.audio_format.clone()),
-        speed: Some(1.25),
+        speed: Some(1.05),
         other: Some(other),
         ..Default::default()
     };

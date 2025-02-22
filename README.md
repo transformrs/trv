@@ -90,37 +90,13 @@ Then, you can use the Docker image as the provider:
 $ trv --input=presentation.typ --provider=openai-compatible(localhost:3000)
 ```
 
-## Compatibility
-
-The output video is not compatible with all video players.
-To make it more compatible, you can use `ffmpeg`.
-For example, this script converts the video to a more compatible format with aac audio.
-
-```sh
-#!/usr/bin/env bash
-
-set -e
-
-# Convert video to highly-compatible format with aac audio.
-# Using the advanced aac encoder via fdk-aac (unix) or aac_at (apple).
-
-ffmpeg \
-    -y \
-    -i _out/out.mp4 \
-    -c:v libx264 -crf 23 -preset fast \
-    -vf "scale=-1:1080,format=yuv420p" \
-    -c:a aac_at \
-    -strict experimental \
-    _out/out-aac.mp4
-```
-
 ## About Audio
 
 Audio is generated using the [transformrs](https://github.com/transformrs/transformrs) crate.
 It supports multiple providers, including DeepInfra, OpenAI, and Google.
 
 So `trv` should also work with providers other than DeepInfra.
-However, during testing, I got the best results with DeepInfra for the lowest price.
+However, during testing, I got the best results with Kokoros or DeepInfra for the lowest price.
 
 For example, OpenAI text-to-speech requires any video to contain a "clear disclosure" that the voice they are hearing is AI-generated.
 
