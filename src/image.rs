@@ -1,8 +1,9 @@
-use std::path::PathBuf;
-
+use crate::path::PathStr;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
+use std::path::Path;
+use std::path::PathBuf;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NewSlide {
@@ -69,13 +70,18 @@ pub fn presenter_notes(input: &str) -> Vec<NewSlide> {
 }
 
 pub fn generate_images(input: &PathBuf, dir: &str) {
+    let image_dir = Path::new(dir).join("image");
+    if !image_dir.exists() {
+        std::fs::create_dir_all(&image_dir).unwrap();
+    }
+    let image_dir = image_dir.to_string();
     let output = std::process::Command::new("typst")
         .arg("compile")
         .arg("--format=png")
         .arg("--ppi=300")
         .arg(format!("--root={}", dir))
         .arg(input)
-        .arg(format!("{}/{{p}}.png", dir))
+        .arg(format!("{image_dir}/{{p}}.png"))
         .output()
         .expect("Failed to run typst compile");
 

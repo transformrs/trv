@@ -19,20 +19,28 @@ pub fn idx(slide: &NewSlide) -> u64 {
 
 pub fn audio_path(dir: &str, slide: &NewSlide, ext: &str) -> PathBuf {
     let idx = idx(slide);
-    Path::new(dir).join(format!("{idx}.{ext}"))
+    let filename = format!("{idx}.{ext}");
+    Path::new(dir).join("audio").join(filename)
 }
 
 pub fn image_path(dir: &str, slide: &NewSlide) -> PathBuf {
     let idx = idx(slide);
-    Path::new(dir).join(format!("{idx}.png"))
+    let filename = format!("{idx}.png");
+    Path::new(dir).join("image").join(filename)
 }
 
 pub fn audio_cache_key_path(dir: &str, slide: &NewSlide) -> PathBuf {
     let idx = idx(slide);
-    Path::new(dir).join(format!("{idx}.audio.cache"))
+    let filename = format!("{idx}.audio.cache");
+    Path::new(dir).join("audio").join(filename)
+}
+
+pub fn video_dir_name() -> &'static str {
+    "video"
 }
 
 pub fn video_path(dir: &str, slide: &NewSlide) -> PathBuf {
     let idx = idx(slide);
-    Path::new(dir).join(format!("{idx}.mp4"))
+    let filename = format!("{idx}.mp4");
+    Path::new(dir).join(video_dir_name()).join(filename)
 }

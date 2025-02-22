@@ -75,6 +75,11 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bo
         .unwrap();
     let bytes = resp.audio.clone();
     let path = audio_path(dir, slide, ext);
+    if let Some(parent) = path.parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+    }
     let mut file = File::create(path).unwrap();
     file.write_all(&bytes).unwrap();
     if cache {

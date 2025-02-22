@@ -1,13 +1,16 @@
 use crate::image::NewSlide;
 use crate::path::PathStr;
 use std::path::Path;
+use crate::path::video_dir_name;
 
 fn generate_concat_list(dir: &str, slides: &Vec<NewSlide>) -> String {
     let mut lines = Vec::new();
     for slide in slides {
         let path = crate::path::video_path(dir, slide);
-        let filename = path.file_name().unwrap().to_str().unwrap();
-        let line = format!("file '{filename}'");
+        let filename = path.file_name().unwrap();
+        let path = Path::new(video_dir_name()).join(filename);
+        let path = path.to_string();
+        let line = format!("file '{path}'");
         lines.push(line);
     }
     lines.sort();
@@ -74,6 +77,13 @@ fn create_video_clip(dir: &str, slide: &NewSlide) {
 
 fn create_video_clips(dir: &str, slides: &Vec<NewSlide>) {
     for slide in slides {
+        if slide.idx == 0 {
+            let output_video = crate::path::video_path(dir, slide);
+            let parent = output_video.parent().unwrap();
+            if !parent.exists() {
+                std::fs::create_dir_all(parent).unwrap();
+            }
+        }
         create_video_clip(dir, slide);
     }
 }
