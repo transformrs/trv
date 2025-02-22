@@ -46,9 +46,8 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool
     contents == serialized
 }
 
-async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bool) {
+async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bool, ext: &str) {
     let provider = Provider::DeepInfra;
-    let ext = "mp3";
     let key = keys.for_provider(&provider).expect("no key for provider");
     let mut other = HashMap::new();
     other.insert("seed".to_string(), json!(42));
@@ -87,11 +86,11 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bo
     }
 }
 
-pub async fn generate_audio_files(dir: &str, slides: &Vec<NewSlide>, cache: bool) {
+pub async fn generate_audio_files(dir: &str, slides: &Vec<NewSlide>, cache: bool, ext: &str) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
         let idx = crate::path::idx(slide);
         tracing::info!("Generating audio file for slide {idx}");
-        generate_audio_file(&keys, dir, slide, cache).await;
+        generate_audio_file(&keys, dir, slide, cache, ext).await;
     }
 }

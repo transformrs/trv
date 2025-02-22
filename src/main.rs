@@ -64,8 +64,10 @@ async fn main() {
     }
     let input = copy_input(&args.input, dir);
 
+    let audio_format = "opus";
+
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);
-    audio::generate_audio_files(dir, &slides, args.cache).await;
-    video::generate_video(dir, &slides, "out.mp4");
+    audio::generate_audio_files(dir, &slides, args.cache, audio_format).await;
+    video::generate_video(dir, &slides, audio_format, "out.mp4");
 }

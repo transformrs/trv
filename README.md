@@ -48,6 +48,30 @@ $ trv --input=presentation.typ
 
 Now, the presentation is available as `_out/out.mp4`.
 
+## Compatibility
+
+The output video is not compatible with all video players.
+To make it more compatible, you can use `ffmpeg`.
+For example, this script converts the video to a more compatible format with aac audio.
+
+```sh
+#!/usr/bin/env bash
+
+set -e
+
+# Convert video to highly-compatible format with aac audio.
+# Using the advanced aac encoder via fdk-aac (unix) or aac_at (apple).
+
+ffmpeg \
+    -y \
+    -i _out/out.mp4 \
+    -c:v libx264 -crf 23 -preset fast \
+    -vf "scale=-1:1080,format=yuv420p" \
+    -c:a aac_at \
+    -strict experimental \
+    _out/out-aac.mp4
+```
+
 ## About Audio
 
 Audio is generated using the [transformrs](https://github.com/transformrs/transformrs) crate.

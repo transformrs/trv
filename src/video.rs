@@ -43,8 +43,8 @@ fn concat_video_clips(concat_list: &str, output_path: &str) {
     }
 }
 
-fn create_video_clip(dir: &str, slide: &NewSlide) {
-    let input_audio = crate::path::audio_path(dir, slide, "mp3");
+fn create_video_clip(dir: &str, slide: &NewSlide, ext: &str) {
+    let input_audio = crate::path::audio_path(dir, slide, ext);
     let input_image = crate::path::image_path(dir, slide);
     let output_video = crate::path::video_path(dir, slide);
     tracing::info!("Creating video clip {}", output_video.to_string());
@@ -75,7 +75,7 @@ fn create_video_clip(dir: &str, slide: &NewSlide) {
     }
 }
 
-fn create_video_clips(dir: &str, slides: &Vec<NewSlide>) {
+fn create_video_clips(dir: &str, slides: &Vec<NewSlide>, audio_format: &str) {
     for slide in slides {
         if slide.idx == 0 {
             let output_video = crate::path::video_path(dir, slide);
@@ -84,12 +84,12 @@ fn create_video_clips(dir: &str, slides: &Vec<NewSlide>) {
                 std::fs::create_dir_all(parent).unwrap();
             }
         }
-        create_video_clip(dir, slide);
+        create_video_clip(dir, slide, audio_format);
     }
 }
 
-pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, output: &str) {
-    create_video_clips(dir, slides);
+pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, audio_format: &str, output: &str) {
+    create_video_clips(dir, slides, audio_format);
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();
     let concat_list = Path::new(dir).join("concat_list.txt");
