@@ -1,7 +1,7 @@
 use crate::image::NewSlide;
+use crate::path::video_dir_name;
 use crate::path::PathStr;
 use std::path::Path;
-use crate::path::video_dir_name;
 
 fn generate_concat_list(dir: &str, slides: &Vec<NewSlide>) -> String {
     let mut lines = Vec::new();

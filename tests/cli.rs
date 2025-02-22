@@ -23,10 +23,10 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     // Not deleting the dir to avoid cargo watch going into an infinite loop.
     let files = vec![
-        "1.mp3",
-        "2.mp3",
-        "1.audio.cache",
-        "1.mp4",
+        "audio/1.mp3",
+        "audio/2.mp3",
+        "audio/1.audio.cache",
+        "video/1.mp4",
         "concat_list.txt",
         "out.mp4",
     ];
