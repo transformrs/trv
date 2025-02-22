@@ -1,11 +1,11 @@
-use crate::idx;
 use crate::image::NewSlide;
+use crate::path::PathStr;
 use std::path::Path;
 
-fn generate_concat_list(dir: &str, video_clips: &Vec<String>) -> String {
+fn generate_concat_list(dir: &str, slides: &Vec<NewSlide>) -> String {
     let mut lines = Vec::new();
-    for video_clip in video_clips {
-        let path = Path::new(dir).join(video_clip);
+    for slide in slides {
+        let path = crate::path::video_path(dir, slide);
         let filename = path.file_name().unwrap().to_str().unwrap();
         let line = format!("file '{filename}'");
         lines.push(line);
@@ -14,8 +14,8 @@ fn generate_concat_list(dir: &str, video_clips: &Vec<String>) -> String {
     lines.join("\n")
 }
 
-fn write_concat_list(dir: &str, path: &str, video_clips: &Vec<String>) {
-    let concat_list = generate_concat_list(dir, video_clips);
+fn write_concat_list(dir: &str, path: &str, slides: &Vec<NewSlide>) {
+    let concat_list = generate_concat_list(dir, slides);
     std::fs::write(path, concat_list).expect("couldn't write concat list");
 }
 
@@ -40,8 +40,11 @@ fn concat_video_clips(concat_list: &str, output_path: &str) {
     }
 }
 
-fn create_video_clip(input_audio: &str, input_image: &str, output_path: &str) {
-    tracing::info!("Creating video clip {output_path}");
+fn create_video_clip(dir: &str, slide: &NewSlide) {
+    let input_audio = crate::path::audio_path(dir, slide, "mp3");
+    let input_image = crate::path::image_path(dir, slide);
+    let output_video = crate::path::video_path(dir, slide);
+    tracing::info!("Creating video clip {}", output_video.to_string());
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
         .arg("-loop")
@@ -57,7 +60,7 @@ fn create_video_clip(input_audio: &str, input_image: &str, output_path: &str) {
         .arg("-shortest")
         .arg("-tune")
         .arg("stillimage")
-        .arg(output_path)
+        .arg(output_video.clone())
         .output()
         .expect("Failed to run ffmpeg command");
     if !output.status.success() {
@@ -65,33 +68,22 @@ fn create_video_clip(input_audio: &str, input_image: &str, output_path: &str) {
         tracing::error!("Failed to create video clip: {stderr}");
         std::process::exit(1);
     } else {
-        tracing::info!("Created video clip {output_path}");
+        tracing::info!("Created video clip {}", output_video.to_string());
     }
 }
 
-fn create_video_clips(dir: &str, slides: &Vec<NewSlide>) -> Vec<String> {
-    let mut video_clips = Vec::new();
+fn create_video_clips(dir: &str, slides: &Vec<NewSlide>) {
     for slide in slides {
-        let idx = idx(slide);
-        let input_audio = Path::new(dir).join(format!("{idx}.mp3"));
-        let input_image = Path::new(dir).join(format!("{idx}.png"));
-        let output = Path::new(dir).join(format!("{idx}.mp4"));
-        create_video_clip(
-            input_audio.to_str().unwrap(),
-            input_image.to_str().unwrap(),
-            output.to_str().unwrap(),
-        );
-        video_clips.push(output.to_str().unwrap().to_string());
+        create_video_clip(dir, slide);
     }
-    video_clips
 }
 
 pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, output: &str) {
-    let video_clips = create_video_clips(dir, slides);
+    create_video_clips(dir, slides);
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();
     let concat_list = Path::new(dir).join("concat_list.txt");
     let concat_list = concat_list.to_str().unwrap();
-    write_concat_list(dir, concat_list, &video_clips);
+    write_concat_list(dir, concat_list, slides);
     concat_video_clips(concat_list, output);
 }

@@ -1,9 +1,9 @@
 mod audio;
 mod image;
+mod path;
 mod video;
 
 use clap::Parser;
-use image::NewSlide;
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
@@ -37,11 +37,6 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
         .with_target(false)
         .finish();
     tracing::subscriber::set_global_default(subscriber)
-}
-
-pub fn idx(slide: &NewSlide) -> u64 {
-    // Typst png files start at one, while slide.idx at zero.
-    slide.idx + 1
 }
 
 /// Copy the input file to the output directory.

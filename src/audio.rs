@@ -1,12 +1,12 @@
-use crate::idx;
 use crate::image::NewSlide;
+use crate::path::audio_cache_key_path;
+use crate::path::audio_path;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
-use std::path::Path;
 use transformrs::text_to_speech::TTSConfig;
 use transformrs::Keys;
 use transformrs::Provider;
@@ -18,8 +18,7 @@ struct CacheKey {
 }
 
 fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
-    let idx = idx(slide);
-    let txt_path = Path::new(dir).join(format!("{idx}.txt"));
+    let txt_path = audio_cache_key_path(dir, slide);
     let mut file = File::create(txt_path).unwrap();
     let text = slide.note.clone();
     let cache_key = CacheKey {
@@ -31,10 +30,9 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
 }
 
 /// Whether the audio file for the given slide exists and is for the same slide.
-fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig) -> bool {
-    let idx = idx(slide);
-    let txt_path = Path::new(dir).join(format!("{idx}.txt"));
-    let mp3_path = Path::new(dir).join(format!("{idx}.mp3"));
+fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool {
+    let txt_path = audio_cache_key_path(dir, slide);
+    let mp3_path = audio_path(dir, slide, ext);
     if !txt_path.exists() || !mp3_path.exists() {
         return false;
     }
@@ -50,18 +48,19 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig) -> bool {
 
 async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bool) {
     let provider = Provider::DeepInfra;
+    let ext = "mp3";
     let key = keys.for_provider(&provider).expect("no key for provider");
     let mut other = HashMap::new();
     other.insert("seed".to_string(), json!(42));
     let config = transformrs::text_to_speech::TTSConfig {
         voice: Some("am_liam".to_string()),
-        output_format: Some("mp3".to_string()),
+        output_format: Some(ext.to_string()),
         speed: Some(1.25),
         other: Some(other),
         ..Default::default()
     };
     let msg = &slide.note;
-    if cache && is_cached(dir, slide, &config) {
+    if cache && is_cached(dir, slide, &config, ext) {
         tracing::info!(
             "Skipping audio generation for slide {} due to cache",
             slide.idx
@@ -75,9 +74,7 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bo
         .structured()
         .unwrap();
     let bytes = resp.audio.clone();
-    let ext = resp.file_format;
-    let idx = idx(slide);
-    let path = Path::new(dir).join(format!("{idx}.{ext}"));
+    let path = audio_path(dir, slide, ext);
     let mut file = File::create(path).unwrap();
     file.write_all(&bytes).unwrap();
     if cache {
