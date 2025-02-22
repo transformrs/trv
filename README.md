@@ -8,6 +8,12 @@ Transform slides and speaker notes into video.
 cargo install trv
 ```
 
+Or with [`cargo binstall`](https://github.com/cargo-bins/cargo-binstall):
+
+```sh
+cargo binstall trv
+```
+
 ## Usage
 
 Create a Typst presentation with speaker notes:

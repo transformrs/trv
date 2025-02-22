@@ -53,7 +53,6 @@ jobs:
         id: check
         shell: bash
 
-
       - run: |
           SRC="target/${{ matrix.target }}/release/trv${{ steps.check.outputs.ext }}"
           echo "SRC: $SRC"
