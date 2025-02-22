@@ -55,7 +55,7 @@ $ trv --input=presentation.typ
 Now, the presentation is available as `_out/out.mp4`.
 
 To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
-See the [Kokoros](#kokoros) section for more information.
+See the [Kokoros section](#kokoros) for more information.
 
 A simple alternative is to use the hosted version at <https://kokoros.transformrs.org>.
 For example, this command creates a video using the hosted service:
