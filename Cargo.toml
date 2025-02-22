@@ -4,9 +4,8 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Rik Huijzer"]
 license = "MIT"
-description = "Transform text and images into video"
+description = "Transform slides and speaker notes into video"
 repository = "https://github.com/transformrs/trv"
-publish = false
 
 [dependencies]
 anyhow = "1"
@@ -15,7 +14,7 @@ futures-util = "0.3.31"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing-subscriber = "0.3"
 tracing = "0.1"
-transformrs = { git = "https://github.com/transformrs/transformrs", rev = "a3b870c" }
+transformrs = "0.6.1"
 serde_json = "1.0.138"
 serde = { version = "1", features = ["derive"] }
 

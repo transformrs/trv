@@ -5,7 +5,7 @@ Transform slides and speaker notes into video.
 ## Installation
 
 ```sh
-cargo install --git https://github.com/transformrs/trv
+cargo install trv
 ```
 
 ## Usage
