@@ -40,6 +40,7 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = bin();
     cmd.arg("--input=tests/test.typ");
     cmd.arg("--audio-format=opus");
+    cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
         .success()
@@ -55,6 +56,8 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.arg("--input=tests/test.typ");
+    cmd.arg("--audio-format=opus");
+    cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
         .success()

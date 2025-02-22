@@ -30,8 +30,9 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
 /// Whether the audio file for the given slide exists and is for the same slide.
 fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool {
     let txt_path = audio_cache_key_path(dir, slide);
-    let mp3_path = audio_path(dir, slide, ext);
-    if !txt_path.exists() || !mp3_path.exists() {
+    let audio_path = audio_path(dir, slide, ext);
+    tracing::debug!("Looking for cached file at {}", audio_path.display());
+    if !txt_path.exists() || !audio_path.exists() {
         return false;
     }
     let contents = std::fs::read_to_string(txt_path).unwrap();

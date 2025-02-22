@@ -38,7 +38,7 @@ struct Arguments {
     /// Voice.
     ///
     /// Note that DeepInfra at the time of writing supports more voices that
-    /// Kokoros. If Kokoros respond with an empty mp3 file (which ffmpeg then
+    /// Kokoros. If Kokoros respond with an empty file (which ffmpeg then
     /// crashes on), try a different voice.
     #[arg(long, default_value = "am_adam")]
     voice: String,
