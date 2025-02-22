@@ -57,6 +57,13 @@ struct Arguments {
     /// Enable caching.
     #[arg(long, default_value = "true")]
     cache: bool,
+
+    /// Release.
+    ///
+    /// If true, attempt to convert the output video into a format that is more
+    /// widely supported.
+    #[arg(long, default_value = "false")]
+    release: bool,
 }
 
 // TODO: This logic should be in the transformrs crate as `Provider::from_str`.
@@ -126,5 +133,9 @@ async fn main() {
     image::generate_images(&input, dir);
     audio::generate_audio_files(&provider, dir, &slides, args.cache, &config, &args.model).await;
     // Using mkv by default because it supports more audio formats.
-    video::generate_video(dir, &slides, &config, "out.mkv");
+    let output = "out.mkv";
+    video::generate_video(dir, &slides, &config, output);
+    if args.release {
+        video::generate_release_video(dir, output, "out.mp4");
+    }
 }

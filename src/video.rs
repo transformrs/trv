@@ -99,3 +99,37 @@ pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, config: &TTSConfig, out
     write_concat_list(dir, concat_list, slides);
     concat_video_clips(concat_list, output);
 }
+
+pub fn generate_release_video(dir: &str, input: &str, output: &str) {
+    let input_path = Path::new(dir).join(input);
+    let output_path = Path::new(dir).join(output);
+    let output_path = output_path.to_str().unwrap();
+    let mut cmd = std::process::Command::new("ffmpeg");
+    let output = cmd
+        .arg("-y")
+        .arg("-i")
+        .arg(input_path)
+        .arg("-c:v")
+        .arg("libx264")
+        .arg("-crf")
+        .arg("23")
+        .arg("-preset")
+        .arg("fast")
+        .arg("-vf")
+        .arg("scale=-1:1080,format=yuv420p")
+        .arg("-c:a")
+        .arg("opus")
+        .arg("-strict")
+        .arg("experimental")
+        .arg(output_path)
+        .output()
+        .expect("Failed to run ffmpeg command");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        tracing::error!("Failed to create release video: {stderr}");
+        std::process::exit(1);
+    } else {
+        tracing::info!("Created release video {}", output_path);
+    }
+}
