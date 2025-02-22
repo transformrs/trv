@@ -8,3 +8,4 @@ Cargo.lock
 **/*.pdf
 _out/
 tests/_out/
+tests/_compatible_out

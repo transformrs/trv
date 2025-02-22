@@ -46,19 +46,22 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool
     contents == serialized
 }
 
-async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bool, ext: &str) {
-    let provider = Provider::DeepInfra;
-    let key = keys.for_provider(&provider).expect("no key for provider");
-    let mut other = HashMap::new();
-    other.insert("seed".to_string(), json!(42));
-    let config = transformrs::text_to_speech::TTSConfig {
-        voice: Some("am_liam".to_string()),
-        output_format: Some(ext.to_string()),
-        speed: Some(1.25),
-        other: Some(other),
-        ..Default::default()
+async fn generate_audio_file(
+    provider: &Option<Provider>,
+    keys: &Keys,
+    dir: &str,
+    slide: &NewSlide,
+    cache: bool,
+    config: &TTSConfig,
+) {
+    let provider = if let Some(provider) = provider {
+        provider
+    } else {
+        &Provider::DeepInfra
     };
+    let key = keys.for_provider(&provider).expect("no key for provider");
     let msg = &slide.note;
+    let ext = config.output_format.as_ref().unwrap();
     if cache && is_cached(dir, slide, &config, ext) {
         tracing::info!(
             "Skipping audio generation for slide {} due to cache",
@@ -67,7 +70,7 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bo
         return;
     }
     let model = Some("hexgrad/Kokoro-82M");
-    let resp = transformrs::text_to_speech::tts(&key, &config, model, msg)
+    let resp = transformrs::text_to_speech::tts(&provider, &key, &config, model, msg)
         .await
         .unwrap()
         .structured()
@@ -86,11 +89,17 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bo
     }
 }
 
-pub async fn generate_audio_files(dir: &str, slides: &Vec<NewSlide>, cache: bool, ext: &str) {
+pub async fn generate_audio_files(
+    provider: &Option<Provider>,
+    dir: &str,
+    slides: &Vec<NewSlide>,
+    cache: bool,
+    config: &TTSConfig,
+) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
         let idx = crate::path::idx(slide);
         tracing::info!("Generating audio file for slide {idx}");
-        generate_audio_file(&keys, dir, slide, cache, ext).await;
+        generate_audio_file(provider, &keys, dir, slide, cache, config).await;
     }
 }

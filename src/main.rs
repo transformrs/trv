@@ -4,9 +4,12 @@ mod path;
 mod video;
 
 use clap::Parser;
+use serde_json::json;
+use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
+use transformrs::Provider;
 
 #[derive(Parser)]
 #[command(author, version, about = "Text and image to video")]
@@ -19,6 +22,20 @@ struct Arguments {
     #[arg(long)]
     verbose: bool,
 
+    /// Provider.
+    ///
+    /// Can be used to pass for example
+    /// `--provider=openai-compatible(kokoros.transformrs.org)`.
+    #[arg(long)]
+    provider: Option<String>,
+
+    /// Audio format.
+    /// 
+    /// This setting usually should not be necessary since ffmpeg can handle
+    /// most formats, but can be useful to override the default value.
+    #[arg(long, default_value = "mp3")]
+    audio_format: String,
+
     /// Out directory.
     #[arg(long, default_value = "_out")]
     out_dir: String,
@@ -26,6 +43,21 @@ struct Arguments {
     /// Enable caching.
     #[arg(long, default_value = "true")]
     cache: bool,
+}
+
+// TODO: This logic should be in the transformrs crate as `Provider::from_str`.
+fn provider_from_str(s: &str) -> Provider {
+    if s.starts_with("openai-compatible(") {
+        let s = s.strip_prefix("openai-compatible(").unwrap();
+        let s = s.strip_suffix(")").unwrap();
+        let mut domain = s.to_string();
+        if !domain.starts_with("https://") {
+            domain = format!("https://{}", domain);
+        }
+        return Provider::OpenAICompatible(domain);
+    } else {
+        panic!("Unsupported provider: {}. Try not passing `--provider`.", s);
+    }
 }
 
 /// Initialize logging with the given level.
@@ -64,10 +96,24 @@ async fn main() {
     }
     let input = copy_input(&args.input, dir);
 
-    let audio_format = "opus";
+    let mut other = HashMap::new();
+    other.insert("seed".to_string(), json!(42));
+    let config = transformrs::text_to_speech::TTSConfig {
+        voice: Some("am_liam".to_string()),
+        output_format: Some(args.audio_format.clone()),
+        speed: Some(1.25),
+        other: Some(other),
+        ..Default::default()
+    };
+
+    let provider = if let Some(provider) = args.provider {
+        Some(provider_from_str(&provider))
+    } else {
+        None
+    };
 
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);
-    audio::generate_audio_files(dir, &slides, args.cache, audio_format).await;
-    video::generate_video(dir, &slides, audio_format, "out.mp4");
+    audio::generate_audio_files(&provider, dir, &slides, args.cache, &config).await;
+    video::generate_video(dir, &slides, &config, "out.mp4");
 }
