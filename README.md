@@ -1,6 +1,6 @@
 # trv
 
-Transform text and images into video.
+Transform slides and speaker notes into video.
 
 ## Installation
 

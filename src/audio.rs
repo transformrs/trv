@@ -90,7 +90,8 @@ async fn generate_audio_file(keys: &Keys, dir: &str, slide: &NewSlide, cache: bo
 pub async fn generate_audio_files(dir: &str, slides: &Vec<NewSlide>, cache: bool) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
-        tracing::info!("Generating audio file for slide {}", slide.idx);
+        let idx = crate::path::idx(slide);
+        tracing::info!("Generating audio file for slide {idx}");
         generate_audio_file(&keys, dir, slide, cache).await;
     }
 }

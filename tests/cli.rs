@@ -25,7 +25,7 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     let files = vec![
         "audio/1.mp3",
         "audio/2.mp3",
-        "audio/1.audio.cache",
+        "audio/1.audio.cache_key",
         "video/1.mp4",
         "concat_list.txt",
         "out.mp4",
@@ -35,18 +35,6 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
         if path.exists() {
             std::fs::remove_file(&path)?;
         }
-    }
-    let audio_2_path = Path::new(out_dir).join("2.mp3");
-    if audio_2_path.exists() {
-        std::fs::remove_file(&audio_2_path)?;
-    }
-    let cache_key_path = Path::new(out_dir).join("1.audio.cache");
-    if cache_key_path.exists() {
-        std::fs::remove_file(&cache_key_path)?;
-    }
-    let video_path = Path::new(out_dir).join("1.mp4");
-    if video_path.exists() {
-        std::fs::remove_file(&video_path)?;
     }
 
     let mut cmd = bin();

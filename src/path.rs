@@ -31,7 +31,7 @@ pub fn image_path(dir: &str, slide: &NewSlide) -> PathBuf {
 
 pub fn audio_cache_key_path(dir: &str, slide: &NewSlide) -> PathBuf {
     let idx = idx(slide);
-    let filename = format!("{idx}.audio.cache");
+    let filename = format!("{idx}.audio.cache_key");
     Path::new(dir).join("audio").join(filename)
 }
 
