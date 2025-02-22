@@ -3,6 +3,7 @@ mod image;
 mod video;
 
 use clap::Parser;
+use image::NewSlide;
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
@@ -38,6 +39,11 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
+pub fn idx(slide: &NewSlide) -> u64 {
+    // Typst png files start at one, while slide.idx at zero.
+    slide.idx + 1
+}
+
 /// Copy the input file to the output directory.
 ///
 /// Typst requires the input to be present in the project directory.
@@ -63,8 +69,8 @@ async fn main() {
     }
     let input = copy_input(&args.input, dir);
 
-    image::generate_images(&input, dir);
     let slides = image::presenter_notes(&args.input);
+    image::generate_images(&input, dir);
     audio::generate_audio_files(dir, &slides, args.cache).await;
-    video::generate_video(dir, "out.mp4");
+    video::generate_video(dir, &slides, "out.mp4");
 }

@@ -1,3 +1,4 @@
+use crate::idx;
 use crate::image::NewSlide;
 use serde::Deserialize;
 use serde::Serialize;
@@ -9,11 +10,6 @@ use std::path::Path;
 use transformrs::text_to_speech::TTSConfig;
 use transformrs::Keys;
 use transformrs::Provider;
-
-fn idx(slide: &NewSlide) -> u64 {
-    // Typst png files start at one, while slide.idx at zero.
-    slide.idx + 1
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CacheKey {

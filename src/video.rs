@@ -1,3 +1,5 @@
+use crate::idx;
+use crate::image::NewSlide;
 use std::path::Path;
 
 fn generate_concat_list(dir: &str, video_clips: &Vec<String>) -> String {
@@ -67,27 +69,25 @@ fn create_video_clip(input_audio: &str, input_image: &str, output_path: &str) {
     }
 }
 
-fn create_video_clips(dir: &str) -> Vec<String> {
+fn create_video_clips(dir: &str, slides: &Vec<NewSlide>) -> Vec<String> {
     let mut video_clips = Vec::new();
-    let files = std::fs::read_dir(dir).expect("couldn't read dir");
-    for file in files {
-        let file = file.expect("couldn't read file");
-        let path = file.path();
-        if let Some(ext) = path.extension() {
-            if ext == "mp3" {
-                let input_audio = path.to_str().expect("couldn't convert path to string");
-                let input_image = &input_audio.replace(".mp3", ".png");
-                let output = &input_audio.replace(".mp3", ".mp4");
-                create_video_clip(input_audio, input_image, output);
-                video_clips.push(output.to_string());
-            }
-        }
+    for slide in slides {
+        let idx = idx(slide);
+        let input_audio = Path::new(dir).join(format!("{idx}.mp3"));
+        let input_image = Path::new(dir).join(format!("{idx}.png"));
+        let output = Path::new(dir).join(format!("{idx}.mp4"));
+        create_video_clip(
+            input_audio.to_str().unwrap(),
+            input_image.to_str().unwrap(),
+            output.to_str().unwrap(),
+        );
+        video_clips.push(output.to_str().unwrap().to_string());
     }
     video_clips
 }
 
-pub fn generate_video(dir: &str, output: &str) {
-    let video_clips = create_video_clips(dir);
+pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, output: &str) {
+    let video_clips = create_video_clips(dir, slides);
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();
     let concat_list = Path::new(dir).join("concat_list.txt");
