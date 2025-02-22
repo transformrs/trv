@@ -23,8 +23,8 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     // Not deleting the dir to avoid cargo watch going into an infinite loop.
     let files = vec![
-        "audio/1.opus",
-        "audio/2.opus",
+        "audio/1.mp3",
+        "audio/2.mp3",
         "audio/1.audio.cache_key",
         "video/1.mkv",
         "concat_list.txt",
@@ -39,7 +39,6 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.arg("--input=tests/test.typ");
-    cmd.arg("--audio-format=opus");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
@@ -56,7 +55,6 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.arg("--input=tests/test.typ");
-    cmd.arg("--audio-format=opus");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
