@@ -68,7 +68,7 @@ fn provider_from_str(s: &str) -> Provider {
         if !domain.starts_with("https://") {
             domain = format!("https://{}", domain);
         }
-        return Provider::OpenAICompatible(domain);
+        Provider::OpenAICompatible(domain)
     } else {
         panic!("Unsupported provider: {}. Try not passing `--provider`.", s);
     }
@@ -120,11 +120,7 @@ async fn main() {
         ..Default::default()
     };
 
-    let provider = if let Some(provider) = args.provider {
-        Some(provider_from_str(&provider))
-    } else {
-        None
-    };
+    let provider = args.provider.map(|p| provider_from_str(&p));
 
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);

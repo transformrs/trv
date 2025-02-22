@@ -3,8 +3,6 @@ use crate::path::audio_cache_key_path;
 use crate::path::audio_path;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::json;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use transformrs::text_to_speech::TTSConfig;
@@ -53,25 +51,25 @@ async fn generate_audio_file(
     slide: &NewSlide,
     cache: bool,
     config: &TTSConfig,
-    model: &String,
+    model: &str,
 ) {
     let provider = if let Some(provider) = provider {
         provider
     } else {
         &Provider::DeepInfra
     };
-    let key = keys.for_provider(&provider).expect("no key for provider");
+    let key = keys.for_provider(provider).expect("no key for provider");
     let msg = &slide.note;
     let ext = config.output_format.as_ref().unwrap();
-    if cache && is_cached(dir, slide, &config, ext) {
+    if cache && is_cached(dir, slide, config, ext) {
         tracing::info!(
             "Skipping audio generation for slide {} due to cache",
             slide.idx
         );
         return;
     }
-    let model = Some(model.as_str());
-    let resp = transformrs::text_to_speech::tts(&provider, &key, &config, model, msg)
+    let model = Some(model);
+    let resp = transformrs::text_to_speech::tts(provider, &key, config, model, msg)
         .await
         .unwrap()
         .structured()
@@ -86,7 +84,7 @@ async fn generate_audio_file(
     let mut file = File::create(path).unwrap();
     file.write_all(&bytes).unwrap();
     if cache {
-        write_cache_key(dir, slide, &config);
+        write_cache_key(dir, slide, config);
     }
 }
 
@@ -96,7 +94,7 @@ pub async fn generate_audio_files(
     slides: &Vec<NewSlide>,
     cache: bool,
     config: &TTSConfig,
-    model: &String,
+    model: &str,
 ) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
