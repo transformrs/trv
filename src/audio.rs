@@ -31,7 +31,6 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
 fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool {
     let txt_path = audio_cache_key_path(dir, slide);
     let audio_path = audio_path(dir, slide, ext);
-    tracing::debug!("Looking for cached file at {}", audio_path.display());
     if !txt_path.exists() || !audio_path.exists() {
         return false;
     }
