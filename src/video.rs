@@ -105,6 +105,10 @@ pub fn generate_release_video(dir: &str, input: &str, output: &str) {
     let output_path = Path::new(dir).join(output);
     let output_path = output_path.to_str().unwrap();
     let mut cmd = std::process::Command::new("ffmpeg");
+    // 1920 is the height of a HD YouTube Short.
+    // It should be a good height for landscape videos too.
+    // Since the video consists of images, data-wise it should be not a problem to go for a higher resolution.
+    let height = 1920;
     let output = cmd
         .arg("-y")
         .arg("-i")
@@ -116,7 +120,7 @@ pub fn generate_release_video(dir: &str, input: &str, output: &str) {
         .arg("-preset")
         .arg("fast")
         .arg("-vf")
-        .arg("scale=-1:1080,format=yuv420p")
+        .arg(format!("scale=-1:{height},format=yuv420p"))
         .arg("-c:a")
         .arg("opus")
         .arg("-strict")

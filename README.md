@@ -105,6 +105,19 @@ $ trv --input=presentation.typ \
     --release
 ```
 
+## Portrait Video
+
+To create a portait video, like a YouTube Short, you can set the page to
+
+```typst
+#set page(width: 259.2pt, height: 460.8pt)
+```
+
+The rest should work as usual.
+This will automatically create slides with 1080 x 1920 resolution since Typst is set to 300 DPI.
+Next, ffmpeg will automatically scale the video to a height of 1920p so in this case the height will not be changed.
+For landscape videos, it might scale the image down to 1920p.
+
 ## About Audio
 
 Audio is generated using the [transformrs](https://github.com/transformrs/transformrs) crate.
