@@ -105,6 +105,10 @@ $ trv --input=presentation.typ \
     --release
 ```
 
+Do note that Zonos is way more unstable than Kokoros at the time of writing.
+For example, sometimes it will add random sounds like the sound of swallowing.
+So in practice, the Kokoro model is probably the better option for now.
+
 ## Portrait Video
 
 To create a portait video, like a YouTube Short, you can set the page to
