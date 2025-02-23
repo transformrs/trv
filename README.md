@@ -100,7 +100,7 @@ So it's probably easiest to use DeepInfra:
 $ export DEEPINFRA_KEY="<YOUR KEY>"
 
 $ trv --input=presentation.typ \
-    --model='Zyphra/Zonos-v1.0-hybrid' \
+    --model='Zyphra/Zonos-v0.1-hybrid' \
     --voice='american_male' \
     --release
 ```
