@@ -43,6 +43,13 @@ struct Arguments {
     #[arg(long, default_value = "am_adam")]
     voice: String,
 
+    /// Speed.
+    ///
+    /// Sets the speed of the voice. This is passed to the text-to-speech
+    /// provider.
+    #[arg(long, default_value = "1.05")]
+    speed: f32,
+
     /// Audio format.
     ///
     /// This setting usually should not be necessary since ffmpeg can handle
@@ -126,7 +133,7 @@ async fn main() {
     let config = transformrs::text_to_speech::TTSConfig {
         voice: Some(args.voice.clone()),
         output_format: Some(args.audio_format.clone()),
-        speed: Some(1.05),
+        speed: Some(args.speed),
         other: Some(other),
         ..Default::default()
     };
