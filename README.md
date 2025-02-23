@@ -39,6 +39,7 @@ Create a Typst presentation with speaker notes:
 
 To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
 See the [Kokoros section](#kokoros) for more information.
+Or for the state-of-the-art, see the [Zyphra Zonos section](#zyphra-zonos).
 
 A simple alternative is to use the hosted version at <https://kokoros.transformrs.org>.
 For example, this command creates a video using the hosted service:
@@ -88,6 +89,20 @@ Then, you can use the Docker image as the provider:
 
 ```raw
 $ trv --input=presentation.typ --provider=openai-compatible(localhost:3000)
+```
+
+## Zyphra Zonos
+
+To use the Zyphra Zonos model, you need 8 GB of VRAM.
+So it's probably easiest to use DeepInfra:
+
+```raw
+$ export DEEPINFRA_KEY="<YOUR KEY>"
+
+$ trv --input=presentation.typ \
+    --model='Zyphra/Zonos-v1.0-hybrid' \
+    --voice='american_male' \
+    --release
 ```
 
 ## About Audio
