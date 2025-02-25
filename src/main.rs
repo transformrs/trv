@@ -138,8 +138,10 @@ async fn main() {
     }
     let input = copy_input(&args.input, dir);
 
+    let provider = args.provider.map(|p| provider_from_str(&p));
+    let provider = provider.unwrap_or(Provider::DeepInfra);
     let mut other = HashMap::new();
-    if args.provider != Some("google".to_string()) {
+    if &provider != &Provider::Google {
         other.insert("seed".to_string(), json!(42));
     }
     let config = transformrs::text_to_speech::TTSConfig {
@@ -149,8 +151,6 @@ async fn main() {
         other: Some(other),
         language_code: args.language_code.clone(),
     };
-
-    let provider = args.provider.map(|p| provider_from_str(&p));
 
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);

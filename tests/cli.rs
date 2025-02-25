@@ -148,9 +148,9 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
     cmd.env("GOOGLE_KEY", key);
-    cmd.arg("--input=tests/test.typ");
     cmd.arg("--provider=google");
-    cmd.arg("--voice=en-US-Studio-Q");
+    cmd.arg("--input=tests/test.typ");
+    cmd.arg("--voice=en-US-Chirp-HD-D");
     cmd.arg("--language-code=en-US");
     cmd.arg("--release");
     cmd.assert().success();

@@ -47,7 +47,7 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -
 
 #[allow(clippy::too_many_arguments)]
 async fn generate_audio_file(
-    provider: &Option<Provider>,
+    provider: &Provider,
     keys: &Keys,
     dir: &str,
     slide: &NewSlide,
@@ -56,11 +56,6 @@ async fn generate_audio_file(
     model: &Option<String>,
     audio_ext: &str,
 ) {
-    let provider = if let Some(provider) = provider {
-        provider
-    } else {
-        &Provider::DeepInfra
-    };
     fn get_key(keys: &Keys, provider: &Provider) -> Key {
         match keys.for_provider(provider) {
             Some(key) => key,
@@ -112,7 +107,7 @@ async fn generate_audio_file(
 }
 
 pub async fn generate_audio_files(
-    provider: &Option<Provider>,
+    provider: &Provider,
     dir: &str,
     slides: &Vec<NewSlide>,
     cache: bool,

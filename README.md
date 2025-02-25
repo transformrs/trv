@@ -99,6 +99,22 @@ Then, you can use the Docker image as the provider:
 $ trv --input=presentation.typ --provider=openai-compatible(localhost:3000)
 ```
 
+## Via Google
+
+Google has some high-quality voices available via their API:
+
+```raw
+$ export GOOGLE_KEY="<YOUR KEY>"
+
+$ trv --input=presentation.typ \
+    --provider=google \
+    --voice=en-US-Chirp-HD-D \
+    --language-code=en-US \
+    --release
+```
+
+See the [Google section](#google) for more information.
+
 ## Zyphra Zonos
 
 To use the Zyphra Zonos model, you need 8 GB of VRAM.
