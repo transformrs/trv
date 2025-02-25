@@ -106,7 +106,7 @@ Google has some high-quality voices available via their API:
 ```raw
 $ export GOOGLE_KEY="<YOUR KEY>"
 
-$ trv --input=presentation.typ \
+$ trv --input=examples/google.typ \
     --provider=google \
     --voice=en-US-Chirp-HD-D \
     --language-code=en-US \
