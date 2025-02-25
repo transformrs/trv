@@ -113,6 +113,8 @@ $ trv --input=presentation.typ \
     --release
 ```
 
+[![Google demo video](https://transformrs.github.io/trv/google.png)](https://transformrs.github.io/trv/google.mp4)
+
 These support the Speech Synthesis Markup Language (SSML) which allows for more control over the audio.
 For example, you can add pauses or emphasis to the audio:
 
