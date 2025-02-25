@@ -19,8 +19,8 @@ pub fn load_key(provider: &Provider) -> String {
     fn finder(line: &Result<String, std::io::Error>, provider: &Provider) -> bool {
         line.as_ref().unwrap().starts_with(&provider.key_name())
     }
-    let path = std::path::Path::new("test.env");
-    let file = std::fs::File::open(path).expect("Failed to open .env file");
+    let path = std::path::Path::new("keys.env");
+    let file = std::fs::File::open(path).expect("Failed to open keys.env file");
     let reader = std::io::BufReader::new(file);
     let mut lines = reader.lines();
     let key = lines.find(|line| finder(line, provider)).unwrap().unwrap();

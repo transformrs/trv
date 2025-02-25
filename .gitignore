@@ -3,6 +3,7 @@
 Cargo.lock
 .env
 test.env
+keys.env
 **/tmp*
 **/*.png
 **/*.jpg
