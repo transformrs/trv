@@ -1,23 +1,55 @@
 use std::fs;
 use std::path::Path;
 
-fn find_code_block_before(lines: &[&str], start_index: usize) -> String {
-    let mut code_block = String::new();
+fn find_text_before(lines: &[&str], start_index: usize) -> String {
+    let mut text = String::new();
     let mut i = start_index;
     while i > 0 {
         i -= 1;
-        if lines[i].starts_with("```") {
-            // Skip the opening ```raw or ```
-            i += 1;
-            while i < lines.len() && !lines[i].starts_with("```") {
-                code_block.push_str(lines[i].trim());
-                code_block.push('\n');
-                i += 1;
-            }
+        let line = lines[i].trim();
+        if line.is_empty() {
+            continue;
+        }
+        // Stop when we hit a heading or another link
+        if line.starts_with('#') || (line.contains("](") && line.contains(".mp4")) {
             break;
+        }
+        // Add non-empty lines to the beginning of our text
+        if !line.is_empty() {
+            text = format!("{}\n{}", line, text);
+        }
+    }
+    text.trim().to_string()
+}
+
+fn extract_code_block(content: &str) -> String {
+    let mut code_block = String::new();
+    let mut in_code_block = false;
+
+    for line in content.lines() {
+        if line.starts_with("```") {
+            in_code_block = !in_code_block;
+            continue;
+        }
+        if in_code_block {
+            code_block.push_str(line);
+            code_block.push('\n');
         }
     }
     code_block
+}
+
+fn drop_export_line(content: &str) -> String {
+    content
+        .lines()
+        .filter(|l| {
+            let trimmed = l.trim();
+            !trimmed.is_empty()
+                && !trimmed.starts_with("$ export")
+                && !trimmed.starts_with("export")
+        })
+        .collect::<Vec<&str>>()
+        .join("\n")
 }
 
 fn clean_content(content: &str) -> String {
@@ -37,8 +69,15 @@ fn get_script_name(video_link: &str) -> String {
         .unwrap()
         .trim_end_matches(')')
         .trim_end_matches(".mp4");
-    
+
     format!("examples/{}.sh", video_name)
+}
+
+fn remove_spaces_prefix(text: &str) -> String {
+    text.lines()
+        .map(|l| l.trim_start())
+        .collect::<Vec<&str>>()
+        .join("\n")
 }
 
 #[test]
@@ -51,7 +90,7 @@ fn test_readme_video_links() {
         if line.contains(".mp4") && line.contains("](") {
             let script_name = get_script_name(line);
             println!("script_name: {}", script_name);
-            
+
             // Check script exists
             assert!(
                 Path::new(&script_name).exists(),
@@ -60,22 +99,27 @@ fn test_readme_video_links() {
                 line
             );
 
-            // Find and clean the previous code block
-            let code_block = find_code_block_before(&lines, i);
-            let clean_code_block = clean_content(&code_block);
+            // Find and clean the text before the video link
+            let text_before = find_text_before(&lines, i);
+            let clean_text = extract_code_block(&text_before);
+            let clean_text = clean_content(&clean_text);
+            let clean_text = drop_export_line(&clean_text);
+            let clean_text = clean_text.strip_prefix("$ ").unwrap();
 
             // Read and clean the actual script
             let script_content = fs::read_to_string(&script_name).unwrap();
             let clean_script = clean_content(&script_content);
-            if clean_code_block != clean_script {
-                println!("\nExpected script content:\n{}\n", clean_code_block);
-                println!("Actual script content:\n{}\n", clean_script);
+            let clean_script = drop_export_line(&clean_script);
+            let clean_script = remove_spaces_prefix(&clean_script);
+
+            if clean_text != clean_script {
+                println!("\nREADME code:\n{}\n", clean_text);
+                println!("Script code:\n{}\n", clean_script);
                 panic!(
-                    "Script {} content doesn't match README code block",
+                    "Script {} content doesn't match README text before link",
                     script_name
                 );
             }
         }
     }
 }
-
