@@ -45,6 +45,7 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -
     contents == serialized
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn generate_audio_file(
     provider: &Option<Provider>,
     keys: &Keys,

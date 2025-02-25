@@ -148,7 +148,6 @@ async fn main() {
         speed: args.speed,
         other: Some(other),
         language_code: args.language_code.clone(),
-        ..Default::default()
     };
 
     let provider = args.provider.map(|p| provider_from_str(&p));
