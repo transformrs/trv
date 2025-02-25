@@ -113,7 +113,20 @@ $ trv --input=presentation.typ \
     --release
 ```
 
-See the [Google section](#google) for more information.
+These support the Speech Synthesis Markup Language (SSML) which allows for more control over the audio.
+For example, you can add pauses or emphasis to the audio:
+
+```md
+<speak>
+    This is an <say-as interpret-as="characters">SSML</say-as> example with a pause.
+    <break time="3s"/>.
+</speak>
+```
+
+See the [Google section](#google) for more information about the Google API.
+
+Google, meanwhile, has the best text-to-speech engine that I've found as part of Gemini 2.0 Flash Experimental.
+However, audio output is not yet available via the API.
 
 ## Zyphra Zonos
 
@@ -155,6 +168,3 @@ So `trv` should also work with providers other than DeepInfra.
 However, during testing, I got the best results with Kokoros or DeepInfra for the lowest price.
 
 For example, OpenAI text-to-speech requires any video to contain a "clear disclosure" that the voice they are hearing is AI-generated.
-
-Google, meanwhile, has the best text-to-speech engine that I've found as part of Gemini 2.0 Flash Experimental.
-However, audio output is not yet available via the API.
