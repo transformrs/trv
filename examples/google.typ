@@ -6,7 +6,7 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    This video was created with via the Google text-to-speech API.
+    This video was created with the Google text-to-speech API.
     ```
     )
 
@@ -17,7 +17,18 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    For example, we can explain the following math problem.
+    As an example, we can explain the following math problem.
+    ```
+    )
+
+    #v(4em)
+    #align(center)[2 + 2 - 1 = x]
+]
+
+#slide[
+    #toolbox.pdfpc.speaker-note(
+    ```md
+    What is x in this equation?
     ```
     )
 
@@ -47,7 +58,7 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    And finally, we get the answer.
+    It's 3.
     ```
     )
 
@@ -56,9 +67,6 @@
 
     #v(0.4em)
     #align(center)[x = 2 + 2 - 1]
-
-    #v(0.4em)
-    #align(center)[x = 2 + 1]
 
     #v(0.4em)
     #align(center)[x = 3]

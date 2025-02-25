@@ -115,16 +115,6 @@ $ trv --input=presentation.typ \
 
 [![Google demo video](https://transformrs.github.io/trv/google.png)](https://transformrs.github.io/trv/google.mp4)
 
-These support the Speech Synthesis Markup Language (SSML) which allows for more control over the audio.
-For example, you can add pauses or emphasis to the audio:
-
-```md
-<speak>
-    This is an <say-as interpret-as="characters">SSML</say-as> example with a pause.
-    <break time="3s"/>.
-</speak>
-```
-
 See the [Google section](#google) for more information about the Google API.
 
 Google, meanwhile, has the best text-to-speech engine that I've found as part of Gemini 2.0 Flash Experimental.
