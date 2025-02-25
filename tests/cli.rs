@@ -21,6 +21,8 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = Path::new("tests").join("_out");
     let out_dir = out_dir.to_str().unwrap();
     println!("out_dir: {out_dir}");
+    let provider = Provider::DeepInfra;
+    let key = common::load_key(&provider);
 
     // Not deleting the dir to avoid cargo watch going into an infinite loop.
     let files = vec![
@@ -39,7 +41,9 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut cmd = bin();
+    cmd.env("DEEPINFRA_KEY", &key);
     cmd.arg("--input=tests/test.typ");
+    cmd.arg("--audio-format=mp3");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
@@ -54,8 +58,12 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
         assert!(path.exists(), "file {} does not exist", file);
     }
 
+    println!("Starting second run...");
+
     let mut cmd = bin();
+    cmd.env("DEEPINFRA_KEY", key);
     cmd.arg("--input=tests/test.typ");
+    cmd.arg("--audio-format=mp3");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()

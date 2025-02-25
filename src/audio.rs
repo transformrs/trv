@@ -60,6 +60,14 @@ async fn generate_audio_file(
     } else {
         &Provider::DeepInfra
     };
+    fn get_key(keys: &Keys, provider: &Provider) -> Key {
+        match keys.for_provider(provider) {
+            Some(key) => key,
+            None => {
+                panic!("no key for provider {:?}", provider);
+            }
+        }
+    }
     let key = match provider {
         Provider::OpenAICompatible(domain) => {
             // Yes the whole key and providers API from transformrs is a mess.
@@ -69,10 +77,10 @@ async fn generate_audio_file(
                     key: "test".to_string(),
                 }
             } else {
-                keys.for_provider(provider).expect("no key for provider")
+                get_key(keys, provider)
             }
         }
-        _ => keys.for_provider(provider).expect("no key for provider"),
+        _ => get_key(keys, provider),
     };
     let msg = &slide.note;
     let ext = config.output_format.clone().unwrap_or("mp3".to_string());
