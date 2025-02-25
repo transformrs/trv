@@ -42,11 +42,11 @@ jobs:
 
       - name: Run examples
         run: |
-            convert _out/image/1.png play_button.png -gravity center -composite tmp.png
+            convert -size 500x500 xc:none -draw "polygon 150,100 150,400 400,250 fill white" play_button.png
 
             ./examples/google.sh
             mv _out/release.mp4 _public/google.mp4
-            convert -size 500x500 xc:none -draw "polygon 150,100 150,400 400,250" play_button.png
+            convert _out/image/1.png play_button.png -gravity center -composite tmp.png
             mv tmp.png _public/google.png
 
             ./examples/first.sh
