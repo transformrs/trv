@@ -115,7 +115,9 @@ pub async fn generate_audio_files(
     model: &Option<String>,
     audio_ext: &str,
 ) {
-    let keys = transformrs::load_keys(".env");
+    // Not using the keys from file (TODO: transformrs should support loading
+    // keys from environment variables).
+    let keys = transformrs::load_keys("not_used.env");
     for slide in slides {
         let idx = crate::path::idx(slide);
         tracing::info!("Generating audio file for slide {idx}");
