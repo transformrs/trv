@@ -76,7 +76,7 @@ fn create_video_clip(dir: &str, slide: &NewSlide, ext: &str) {
     }
 }
 
-fn create_video_clips(dir: &str, slides: &Vec<NewSlide>, audio_format: &str) {
+fn create_video_clips(dir: &str, slides: &Vec<NewSlide>, audio_ext: &str) {
     for slide in slides {
         if slide.idx == 0 {
             let output_video = crate::path::video_path(dir, slide);
@@ -85,13 +85,18 @@ fn create_video_clips(dir: &str, slides: &Vec<NewSlide>, audio_format: &str) {
                 std::fs::create_dir_all(parent).unwrap();
             }
         }
-        create_video_clip(dir, slide, audio_format);
+        create_video_clip(dir, slide, audio_ext);
     }
 }
 
-pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, config: &TTSConfig, output: &str) {
-    let audio_format = config.output_format.as_ref().unwrap();
-    create_video_clips(dir, slides, audio_format);
+pub fn generate_video(
+    dir: &str,
+    slides: &Vec<NewSlide>,
+    config: &TTSConfig,
+    output: &str,
+    audio_ext: &str,
+) {
+    create_video_clips(dir, slides, audio_ext);
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();
     let concat_list = Path::new(dir).join("concat_list.txt");
@@ -100,7 +105,7 @@ pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, config: &TTSConfig, out
     concat_video_clips(concat_list, output);
 }
 
-pub fn generate_release_video(dir: &str, input: &str, output: &str) {
+pub fn generate_release_video(dir: &str, input: &str, output: &str, audio_ext: &str) {
     let input_path = Path::new(dir).join(input);
     let output_path = Path::new(dir).join(output);
     let output_path = output_path.to_str().unwrap();

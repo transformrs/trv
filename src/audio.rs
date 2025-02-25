@@ -29,9 +29,9 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
 }
 
 /// Whether the audio file for the given slide exists and is for the same slide.
-fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool {
+fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -> bool {
     let txt_path = audio_cache_key_path(dir, slide);
-    let audio_path = audio_path(dir, slide, ext);
+    let audio_path = audio_path(dir, slide, audio_ext);
     if !txt_path.exists() || !audio_path.exists() {
         return false;
     }
@@ -52,7 +52,8 @@ async fn generate_audio_file(
     slide: &NewSlide,
     cache: bool,
     config: &TTSConfig,
-    model: &str,
+    model: &Option<String>,
+    audio_ext: &str,
 ) {
     let provider = if let Some(provider) = provider {
         provider
@@ -74,22 +75,22 @@ async fn generate_audio_file(
         _ => keys.for_provider(provider).expect("no key for provider"),
     };
     let msg = &slide.note;
-    let ext = config.output_format.as_ref().unwrap();
-    if cache && is_cached(dir, slide, config, ext) {
+    let ext = config.output_format.clone().unwrap_or("mp3".to_string());
+    if cache && is_cached(dir, slide, config, &audio_ext) {
         tracing::info!(
             "Skipping audio generation for slide {} due to cache",
             slide.idx
         );
         return;
     }
-    let model = Some(model);
+    let model = model.as_deref();
     let resp = transformrs::text_to_speech::tts(provider, &key, config, model, msg)
         .await
         .unwrap()
         .structured()
         .unwrap();
     let bytes = resp.audio.clone();
-    let path = audio_path(dir, slide, ext);
+    let path = audio_path(dir, slide, &ext);
     if let Some(parent) = path.parent() {
         if !parent.exists() {
             std::fs::create_dir_all(parent).unwrap();
@@ -108,12 +109,13 @@ pub async fn generate_audio_files(
     slides: &Vec<NewSlide>,
     cache: bool,
     config: &TTSConfig,
-    model: &str,
+    model: &Option<String>,
+    audio_ext: &str,
 ) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
         let idx = crate::path::idx(slide);
         tracing::info!("Generating audio file for slide {idx}");
-        generate_audio_file(provider, &keys, dir, slide, cache, config, model).await;
+        generate_audio_file(provider, &keys, dir, slide, cache, config, model, audio_ext).await;
     }
 }

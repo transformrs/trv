@@ -17,9 +17,9 @@ pub fn idx(slide: &NewSlide) -> u64 {
     slide.idx + 1
 }
 
-pub fn audio_path(dir: &str, slide: &NewSlide, ext: &str) -> PathBuf {
+pub fn audio_path(dir: &str, slide: &NewSlide, audio_ext: &str) -> PathBuf {
     let idx = idx(slide);
-    let filename = format!("{idx}.{ext}");
+    let filename = format!("{idx}.{audio_ext}");
     Path::new(dir).join("audio").join(filename)
 }
 
