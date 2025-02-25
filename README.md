@@ -16,7 +16,9 @@ cargo binstall trv
 
 ## Usage
 
-Create a Typst presentation with speaker notes:
+This tool is designed to work with [Typst](https://github.com/typst/typst) presentations.
+Typst is a new typesetting system that is similar to LaTeX.
+To create a video, create a Typst presentation with speaker notes:
 
 ```typ
 #import "@preview/polylux:0.4.0": *
@@ -37,12 +39,7 @@ Create a Typst presentation with speaker notes:
 ]
 ```
 
-To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
-See the [Kokoros section](#kokoros) for more information.
-Or for the state-of-the-art, see the [Zyphra Zonos section](#zyphra-zonos).
-
-A simple alternative is to use the hosted version at <https://kokoros.transformrs.org>.
-For example, this command creates a video using the hosted service:
+Next, run the following command:
 
 ```raw
 $ trv --input=presentation.typ \
@@ -53,7 +50,16 @@ $ trv --input=presentation.typ \
     --release
 ```
 
-To create a video from the presentation with DeepInfra, run:
+This will create the video `_out/release.mp4`.
+
+## Offline
+
+To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
+See the [Kokoros section](#kokoros) for more information.
+
+## Via DeepInfra
+
+For more voices and faster audio generation, you can use the Kokoro models hosted at DeepInfra.
 
 ```raw
 $ export DEEPINFRA_KEY="<YOUR KEY>"
@@ -68,14 +74,16 @@ $ trv --input=presentation.typ
  INFO Concatenated video clips into _out/out.mp4
 ```
 
-Now, the presentation is available as `_out/out.mp4`.
-A benefit of DeepInfra is that they have some extra voices compared to Kokoros.
 
-## Kokoros
+To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
+See the [Offline section](#offline) for more information.
+Or for a state-of-the-art model with voice cloning capabilities, see the [Zyphra Zonos section](#zyphra-zonos).
+
+## Offline
 
 To use Kokoros locally, the easiest way is to use the Docker image.
 
-```sh
+```raw
 $ git clone https://github.com/lucasjinreal/Kokoros.git
 
 $ cd Kokoros/
@@ -90,6 +98,35 @@ Then, you can use the Docker image as the provider:
 ```raw
 $ trv --input=presentation.typ --provider=openai-compatible(localhost:3000)
 ```
+
+## Via Google
+
+Google has some high-quality voices available via their API:
+
+```raw
+$ export GOOGLE_KEY="<YOUR KEY>"
+
+$ trv --input=presentation.typ \
+    --provider=google \
+    --voice=en-US-Chirp-HD-D \
+    --language-code=en-US \
+    --release
+```
+
+These support the Speech Synthesis Markup Language (SSML) which allows for more control over the audio.
+For example, you can add pauses or emphasis to the audio:
+
+```md
+<speak>
+    This is an <say-as interpret-as="characters">SSML</say-as> example with a pause.
+    <break time="3s"/>.
+</speak>
+```
+
+See the [Google section](#google) for more information about the Google API.
+
+Google, meanwhile, has the best text-to-speech engine that I've found as part of Gemini 2.0 Flash Experimental.
+However, audio output is not yet available via the API.
 
 ## Zyphra Zonos
 
@@ -131,6 +168,3 @@ So `trv` should also work with providers other than DeepInfra.
 However, during testing, I got the best results with Kokoros or DeepInfra for the lowest price.
 
 For example, OpenAI text-to-speech requires any video to contain a "clear disclosure" that the voice they are hearing is AI-generated.
-
-Google, meanwhile, has the best text-to-speech engine that I've found as part of Gemini 2.0 Flash Experimental.
-However, audio output is not yet available via the API.

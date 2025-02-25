@@ -2,6 +2,7 @@
 **/*.rs.bk
 Cargo.lock
 .env
+test.env
 **/tmp*
 **/*.png
 **/*.jpg
@@ -9,3 +10,4 @@ Cargo.lock
 _out/
 tests/_out/
 tests/_compatible_out/
+tests/_google_out/

@@ -32,8 +32,8 @@ struct Arguments {
     /// Model.
     ///
     /// For the OpenAI compatible API from Kokoros, use `tts-1`.
-    #[arg(long, default_value = "hexgrad/Kokoro-82M")]
-    model: String,
+    #[arg(long)]
+    model: Option<String>,
 
     /// Voice.
     ///
@@ -47,15 +47,21 @@ struct Arguments {
     ///
     /// Sets the speed of the voice. This is passed to the text-to-speech
     /// provider.
-    #[arg(long, default_value = "1.05")]
-    speed: f32,
+    #[arg(long)]
+    speed: Option<f32>,
 
     /// Audio format.
     ///
     /// This setting usually should not be necessary since ffmpeg can handle
     /// most formats, but can be useful to override the default value.
-    #[arg(long, default_value = "mp3")]
-    audio_format: String,
+    #[arg(long)]
+    audio_format: Option<String>,
+
+    /// Language code.
+    ///
+    /// This setting is required by Google.
+    #[arg(long)]
+    language_code: Option<String>,
 
     /// Out directory.
     #[arg(long, default_value = "_out")]
@@ -87,8 +93,12 @@ fn provider_from_str(s: &str) -> Provider {
             }
         }
         Provider::OpenAICompatible(domain)
+    } else if s == "google" {
+        Provider::Google
+    } else if s == "deepinfra" {
+        Provider::DeepInfra
     } else {
-        panic!("Unsupported provider: {}. Try not passing `--provider`.", s);
+        panic!("Unsupported provider: {}. Try setting a key like `GOOGLE_KEY` and not passing `--provider`.", s);
     }
 }
 
@@ -128,24 +138,36 @@ async fn main() {
     }
     let input = copy_input(&args.input, dir);
 
+    let provider = args.provider.map(|p| provider_from_str(&p));
+    let provider = provider.unwrap_or(Provider::DeepInfra);
     let mut other = HashMap::new();
-    other.insert("seed".to_string(), json!(42));
+    if &provider != &Provider::Google {
+        other.insert("seed".to_string(), json!(42));
+    }
     let config = transformrs::text_to_speech::TTSConfig {
         voice: Some(args.voice.clone()),
-        output_format: Some(args.audio_format.clone()),
-        speed: Some(args.speed),
+        output_format: args.audio_format.clone(),
+        speed: args.speed,
         other: Some(other),
-        ..Default::default()
+        language_code: args.language_code.clone(),
     };
-
-    let provider = args.provider.map(|p| provider_from_str(&p));
 
     let slides = image::presenter_notes(&args.input);
     image::generate_images(&input, dir);
-    audio::generate_audio_files(&provider, dir, &slides, args.cache, &config, &args.model).await;
+    let audio_ext = config.output_format.clone().unwrap_or("mp3".to_string());
+    audio::generate_audio_files(
+        &provider,
+        dir,
+        &slides,
+        args.cache,
+        &config,
+        &args.model,
+        &audio_ext,
+    )
+    .await;
     // Using mkv by default because it supports more audio formats.
     let output = "out.mkv";
-    video::generate_video(dir, &slides, &config, output);
+    video::generate_video(dir, &slides, output, &audio_ext);
     if args.release {
         video::generate_release_video(dir, output, "release.mp4");
     }

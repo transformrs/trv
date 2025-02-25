@@ -29,9 +29,9 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
 }
 
 /// Whether the audio file for the given slide exists and is for the same slide.
-fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool {
+fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -> bool {
     let txt_path = audio_cache_key_path(dir, slide);
-    let audio_path = audio_path(dir, slide, ext);
+    let audio_path = audio_path(dir, slide, audio_ext);
     if !txt_path.exists() || !audio_path.exists() {
         return false;
     }
@@ -45,20 +45,25 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, ext: &str) -> bool
     contents == serialized
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn generate_audio_file(
-    provider: &Option<Provider>,
+    provider: &Provider,
     keys: &Keys,
     dir: &str,
     slide: &NewSlide,
     cache: bool,
     config: &TTSConfig,
-    model: &str,
+    model: &Option<String>,
+    audio_ext: &str,
 ) {
-    let provider = if let Some(provider) = provider {
-        provider
-    } else {
-        &Provider::DeepInfra
-    };
+    fn get_key(keys: &Keys, provider: &Provider) -> Key {
+        match keys.for_provider(provider) {
+            Some(key) => key,
+            None => {
+                panic!("no key for provider {:?}", provider);
+            }
+        }
+    }
     let key = match provider {
         Provider::OpenAICompatible(domain) => {
             // Yes the whole key and providers API from transformrs is a mess.
@@ -68,28 +73,27 @@ async fn generate_audio_file(
                     key: "test".to_string(),
                 }
             } else {
-                keys.for_provider(provider).expect("no key for provider")
+                get_key(keys, provider)
             }
         }
-        _ => keys.for_provider(provider).expect("no key for provider"),
+        _ => get_key(keys, provider),
     };
     let msg = &slide.note;
-    let ext = config.output_format.as_ref().unwrap();
-    if cache && is_cached(dir, slide, config, ext) {
+    if cache && is_cached(dir, slide, config, audio_ext) {
         tracing::info!(
             "Skipping audio generation for slide {} due to cache",
             slide.idx
         );
         return;
     }
-    let model = Some(model);
+    let model = model.as_deref();
     let resp = transformrs::text_to_speech::tts(provider, &key, config, model, msg)
         .await
         .unwrap()
         .structured()
         .unwrap();
     let bytes = resp.audio.clone();
-    let path = audio_path(dir, slide, ext);
+    let path = audio_path(dir, slide, audio_ext);
     if let Some(parent) = path.parent() {
         if !parent.exists() {
             std::fs::create_dir_all(parent).unwrap();
@@ -103,17 +107,18 @@ async fn generate_audio_file(
 }
 
 pub async fn generate_audio_files(
-    provider: &Option<Provider>,
+    provider: &Provider,
     dir: &str,
     slides: &Vec<NewSlide>,
     cache: bool,
     config: &TTSConfig,
-    model: &str,
+    model: &Option<String>,
+    audio_ext: &str,
 ) {
     let keys = transformrs::load_keys(".env");
     for slide in slides {
         let idx = crate::path::idx(slide);
         tracing::info!("Generating audio file for slide {idx}");
-        generate_audio_file(provider, &keys, dir, slide, cache, config, model).await;
+        generate_audio_file(provider, &keys, dir, slide, cache, config, model, audio_ext).await;
     }
 }
