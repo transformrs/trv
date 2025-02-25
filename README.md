@@ -16,7 +16,9 @@ cargo binstall trv
 
 ## Usage
 
-Create a Typst presentation with speaker notes:
+This tool is designed to work with [Typst](https://github.com/typst/typst) presentations.
+Typst is a new typesetting system that is similar to LaTeX.
+To create a video, create a Typst presentation with speaker notes:
 
 ```typ
 #import "@preview/polylux:0.4.0": *
@@ -37,12 +39,7 @@ Create a Typst presentation with speaker notes:
 ]
 ```
 
-To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
-See the [Kokoros section](#kokoros) for more information.
-Or for the state-of-the-art, see the [Zyphra Zonos section](#zyphra-zonos).
-
-A simple alternative is to use the hosted version at <https://kokoros.transformrs.org>.
-For example, this command creates a video using the hosted service:
+Next, run the following command:
 
 ```raw
 $ trv --input=presentation.typ \
@@ -53,7 +50,16 @@ $ trv --input=presentation.typ \
     --release
 ```
 
-To create a video from the presentation with DeepInfra, run:
+This will create the video `_out/release.mp4`.
+
+## Offline
+
+To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
+See the [Kokoros section](#kokoros) for more information.
+
+## Via DeepInfra
+
+For more voices and faster audio generation, you can use the Kokoro models hosted at DeepInfra.
 
 ```raw
 $ export DEEPINFRA_KEY="<YOUR KEY>"
@@ -68,14 +74,16 @@ $ trv --input=presentation.typ
  INFO Concatenated video clips into _out/out.mp4
 ```
 
-Now, the presentation is available as `_out/out.mp4`.
-A benefit of DeepInfra is that they have some extra voices compared to Kokoros.
 
-## Kokoros
+To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
+See the [Offline section](#offline) for more information.
+Or for a state-of-the-art model with voice cloning capabilities, see the [Zyphra Zonos section](#zyphra-zonos).
+
+## Offline
 
 To use Kokoros locally, the easiest way is to use the Docker image.
 
-```sh
+```raw
 $ git clone https://github.com/lucasjinreal/Kokoros.git
 
 $ cd Kokoros/
