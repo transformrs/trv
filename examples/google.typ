@@ -43,7 +43,7 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    To solve it, we can move the x to the left.
+    To solve it, we can move the 2x to the left.
 
     Or in other words, we put everything on the left side of the equation on the right side and everything on the right side of the equation on the left side.
     ```
@@ -59,7 +59,7 @@
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    Now we move the 2 to the right.
+    Now we "move the 2 to the right".
 
     This can be done by dividing both sides of the equation by 2.
 
