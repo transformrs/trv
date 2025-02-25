@@ -36,4 +36,4 @@ jobs:
       - run: cargo test --all-features
 
       - name: Cleanup before Post Run
-        run: rm .env
+        run: rm test.env
