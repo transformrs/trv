@@ -2,7 +2,6 @@ use crate::image::NewSlide;
 use crate::path::video_dir_name;
 use crate::path::PathStr;
 use std::path::Path;
-use transformrs::text_to_speech::TTSConfig;
 
 fn generate_concat_list(dir: &str, slides: &Vec<NewSlide>) -> String {
     let mut lines = Vec::new();
@@ -89,13 +88,7 @@ fn create_video_clips(dir: &str, slides: &Vec<NewSlide>, audio_ext: &str) {
     }
 }
 
-pub fn generate_video(
-    dir: &str,
-    slides: &Vec<NewSlide>,
-    config: &TTSConfig,
-    output: &str,
-    audio_ext: &str,
-) {
+pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, output: &str, audio_ext: &str) {
     create_video_clips(dir, slides, audio_ext);
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();
@@ -105,7 +98,7 @@ pub fn generate_video(
     concat_video_clips(concat_list, output);
 }
 
-pub fn generate_release_video(dir: &str, input: &str, output: &str, audio_ext: &str) {
+pub fn generate_release_video(dir: &str, input: &str, output: &str) {
     let input_path = Path::new(dir).join(input);
     let output_path = Path::new(dir).join(output);
     let output_path = output_path.to_str().unwrap();

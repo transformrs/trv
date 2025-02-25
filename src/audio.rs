@@ -83,8 +83,7 @@ async fn generate_audio_file(
         _ => get_key(keys, provider),
     };
     let msg = &slide.note;
-    let ext = config.output_format.clone().unwrap_or("mp3".to_string());
-    if cache && is_cached(dir, slide, config, &audio_ext) {
+    if cache && is_cached(dir, slide, config, audio_ext) {
         tracing::info!(
             "Skipping audio generation for slide {} due to cache",
             slide.idx
@@ -98,7 +97,7 @@ async fn generate_audio_file(
         .structured()
         .unwrap();
     let bytes = resp.audio.clone();
-    let path = audio_path(dir, slide, &ext);
+    let path = audio_path(dir, slide, audio_ext);
     if let Some(parent) = path.parent() {
         if !parent.exists() {
             std::fs::create_dir_all(parent).unwrap();

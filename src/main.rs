@@ -168,8 +168,8 @@ async fn main() {
     .await;
     // Using mkv by default because it supports more audio formats.
     let output = "out.mkv";
-    video::generate_video(dir, &slides, &config, output, &audio_ext);
+    video::generate_video(dir, &slides, output, &audio_ext);
     if args.release {
-        video::generate_release_video(dir, output, "release.mp4", &audio_ext);
+        video::generate_release_video(dir, output, "release.mp4");
     }
 }
