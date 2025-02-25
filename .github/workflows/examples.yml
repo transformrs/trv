@@ -42,6 +42,7 @@ jobs:
         run: |
             ./examples/google.sh
             mv _out/release.mp4 _public/google.mp4
+            mv _out/image/1.png _public/google.png
 
       - name: Cleanup
         run: rm keys.env
