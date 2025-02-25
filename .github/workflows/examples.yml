@@ -40,15 +40,19 @@ jobs:
           mkdir _public
           echo "<html><body><h1>Home page for the examples</h1></body></html>" > _public/index.html
 
-      - name: Run Google example
+      - name: Run examples
         run: |
-            ./examples/google.sh
-            mv _out/release.mp4 _public/google.mp4
-
-            convert -size 500x500 xc:none -draw "polygon 150,100 150,400 400,250" play_button.png
             convert _out/image/1.png play_button.png -gravity center -composite tmp.png
 
+            ./examples/google.sh
+            mv _out/release.mp4 _public/google.mp4
+            convert -size 500x500 xc:none -draw "polygon 150,100 150,400 400,250" play_button.png
             mv tmp.png _public/google.png
+
+            ./examples/first.sh
+            mv _out/release.mp4 _public/first.mp4
+            convert _out/image/1.png play_button.png -gravity center -composite tmp.png
+            mv tmp.png _public/first.png
 
       - name: Cleanup
         run: rm keys.env

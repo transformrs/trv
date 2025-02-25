@@ -18,7 +18,7 @@ cargo binstall trv
 
 This tool is designed to work with [Typst](https://github.com/typst/typst) presentations.
 Typst is a new typesetting system that is similar to LaTeX.
-To create a video, create a Typst presentation with speaker notes:
+To create a video, create a Typst presentation with speaker notes (we show only the first slide here):
 
 ```typ
 #import "@preview/polylux:0.4.0": *
@@ -30,27 +30,32 @@ To create a video, create a Typst presentation with speaker notes:
 #slide[
     #toolbox.pdfpc.speaker-note(
     ```md
-    What if you could show code in a video?
+    What if you could easily generate videos from text?
     ```
     )
-
-    \
-    #align(center)[Code examples or code videos?]
+    #set page(fill: black)
+    #set text(fill: white)
+    #v(6em)
+    #set text(size: 35pt)
+    #align(center)[*Text to video*]
 ]
 ```
 
 Next, run the following command:
 
 ```raw
-$ trv --input=presentation.typ \
-    --provider=openai-compatible(kokoros.transformrs.org) \
+$ trv --input=examples/first.typ \
+    --provider='openai-compatible(kokoros.transformrs.org)' \
     --model=tts-1 \
-    --voice=bm_lewis \
+    --voice=af_sky \
+    --speed=0.95 \
     --audio-format=wav \
     --release
 ```
 
-This will create the video `_out/release.mp4`.
+This generates the following video:
+
+[![First demo video](https://transformrs.github.io/trv/first.png)](https://transformrs.github.io/trv/first.mp4)
 
 ## Offline
 

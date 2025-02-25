@@ -152,6 +152,7 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("--input=tests/test.typ");
     cmd.arg("--voice=en-US-Chirp-HD-D");
     cmd.arg("--language-code=en-US");
+    cmd.arg("--audio-codec=aac_at");
     cmd.arg("--release");
     cmd.assert().success();
 

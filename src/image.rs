@@ -40,7 +40,14 @@ fn query_presenter_notes(input: &str) -> Value {
         .expect("Failed to run typst presenter-notes command");
 
     let text = String::from_utf8_lossy(&output.stdout);
-    serde_json::from_str::<Value>(&text).expect("invalid json")
+    match serde_json::from_str::<Value>(&text) {
+        Ok(json) => json,
+        Err(e) => {
+            tracing::error!("Error parsing JSON: {}", e);
+            tracing::error!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn presenter_notes(input: &str) -> Vec<NewSlide> {

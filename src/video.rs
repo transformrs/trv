@@ -98,7 +98,7 @@ pub fn generate_video(dir: &str, slides: &Vec<NewSlide>, output: &str, audio_ext
     concat_video_clips(concat_list, output);
 }
 
-pub fn generate_release_video(dir: &str, input: &str, output: &str) {
+pub fn generate_release_video(dir: &str, input: &str, output: &str, audio_codec: &str) {
     let input_path = Path::new(dir).join(input);
     let output_path = Path::new(dir).join(output);
     let output_path = output_path.to_str().unwrap();
@@ -120,7 +120,7 @@ pub fn generate_release_video(dir: &str, input: &str, output: &str) {
         .arg("-vf")
         .arg(format!("scale=-1:{height},format=yuv420p"))
         .arg("-c:a")
-        .arg("opus")
+        .arg(audio_codec)
         .arg("-strict")
         .arg("experimental")
         .arg(output_path)

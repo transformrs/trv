@@ -77,6 +77,19 @@ struct Arguments {
     /// widely supported.
     #[arg(long, default_value = "false")]
     release: bool,
+
+    /// Audio codec.
+    ///
+    /// This setting is passed to ffmpeg.
+    ///
+    /// Opus generally gives the best quality for the lowest file size, but is
+    /// not supported by all platforms. For example, Whatsapp Web and X don't
+    /// accept it.
+    ///
+    /// So therefore on MacOS set the value to `aac_at` and on Linux to
+    /// `libfdk_aac`.
+    #[arg(long, default_value = "opus")]
+    audio_codec: String,
 }
 
 // TODO: This logic should be in the transformrs crate as `Provider::from_str`.
@@ -141,7 +154,7 @@ async fn main() {
     let provider = args.provider.map(|p| provider_from_str(&p));
     let provider = provider.unwrap_or(Provider::DeepInfra);
     let mut other = HashMap::new();
-    if &provider != &Provider::Google {
+    if provider != Provider::Google {
         other.insert("seed".to_string(), json!(42));
     }
     let config = transformrs::text_to_speech::TTSConfig {
@@ -169,6 +182,6 @@ async fn main() {
     let output = "out.mkv";
     video::generate_video(dir, &slides, output, &audio_ext);
     if args.release {
-        video::generate_release_video(dir, output, "release.mp4");
+        video::generate_release_video(dir, output, "release.mp4", &args.audio_codec);
     }
 }

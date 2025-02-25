@@ -47,6 +47,7 @@ fn drop_export_line(content: &str) -> String {
             !trimmed.is_empty()
                 && !trimmed.starts_with("$ export")
                 && !trimmed.starts_with("export")
+                && !trimmed.starts_with("cp")
         })
         .collect::<Vec<&str>>()
         .join("\n")
