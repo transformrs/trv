@@ -128,7 +128,7 @@ fn test_readme_video_links() {
     for (script_name, link_and_code) in links_and_code {
         assert!(
             link_and_code.clean_text.starts_with("trv"),
-            "Expected script for {} to start with 'trv', but got:\n{}",
+            "Expected script for {} to start with 'trv', but got:\n```\n{}\n```",
             script_name,
             link_and_code.clean_text
         );
