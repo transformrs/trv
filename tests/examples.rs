@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
@@ -81,10 +82,57 @@ fn remove_spaces_prefix(text: &str) -> String {
         .join("\n")
 }
 
+#[derive(Clone, Debug)]
+struct LinkAndCode {
+    pub script_name: String,
+    pub clean_text: String,
+}
+
+fn extract_readme_links_and_code() -> HashMap<String, LinkAndCode> {
+    let readme = std::fs::read_to_string("README.md").unwrap();
+    let lines: Vec<&str> = readme.lines().collect();
+    let mut links_and_code = std::collections::HashMap::new();
+
+    for (i, line) in lines.iter().enumerate() {
+        // Look for video links ending in .mp4
+        if line.contains(".mp4") && line.contains("](") {
+            let script_name = get_script_name(line);
+
+            // Find and clean the text before the video link
+            let text_before = find_text_before(&lines, i);
+            let clean_text = extract_code_block(&text_before);
+            let clean_text = clean_content(&clean_text);
+            let clean_text = drop_export_line(&clean_text);
+            let clean_text = clean_text
+                .strip_prefix("$ ")
+                .unwrap_or(&clean_text)
+                .to_string();
+
+            let link_and_code = LinkAndCode {
+                script_name: script_name.clone(),
+                clean_text,
+            };
+            links_and_code.insert(script_name, link_and_code);
+        }
+    }
+
+    links_and_code
+}
+
 #[test]
 fn test_readme_video_links() {
     let readme = fs::read_to_string("README.md").unwrap();
     let lines: Vec<&str> = readme.lines().collect();
+
+    let links_and_code = extract_readme_links_and_code();
+    for (script_name, link_and_code) in links_and_code {
+        assert!(
+            link_and_code.clean_text.starts_with("trv"),
+            "Expected script for {} to start with 'trv', but got:\n{}",
+            script_name,
+            link_and_code.clean_text
+        );
+    }
 
     for (i, line) in lines.iter().enumerate() {
         // Look for video links ending in .mp4
@@ -105,7 +153,7 @@ fn test_readme_video_links() {
             let clean_text = extract_code_block(&text_before);
             let clean_text = clean_content(&clean_text);
             let clean_text = drop_export_line(&clean_text);
-            let clean_text = clean_text.strip_prefix("$ ").unwrap();
+            let clean_text = clean_text.strip_prefix("$ ").unwrap_or(&clean_text);
 
             // Read and clean the actual script
             let script_content = fs::read_to_string(&script_name).unwrap();
