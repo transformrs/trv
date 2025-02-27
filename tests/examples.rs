@@ -43,23 +43,6 @@ fn find_code_block_before(lines: &[&str], start_index: usize) -> String {
     text.trim().to_string()
 }
 
-fn extract_code_block(content: &str) -> String {
-    let mut code_block = String::new();
-    let mut in_code_block = false;
-
-    for line in content.lines() {
-        if line.starts_with("```") {
-            in_code_block = !in_code_block;
-            continue;
-        }
-        if in_code_block {
-            code_block.push_str(line);
-            code_block.push('\n');
-        }
-    }
-    code_block
-}
-
 fn drop_export_line(content: &str) -> String {
     content
         .lines()
@@ -118,11 +101,10 @@ fn extract_readme_links_and_code() -> HashMap<String, LinkAndCode> {
         if line.contains(".mp4") && line.contains("](") {
             let script_name = get_script_name(line);
 
-            // Find and clean the text before the video link
             let text_before = find_code_block_before(&lines, i);
             let clean_text = clean_content(&text_before);
-            println!("clean_text:\n---\n{}\n---", clean_text);
             let clean_text = drop_export_line(&clean_text);
+            let clean_text = remove_spaces_prefix(&clean_text);
             let clean_text = clean_text
                 .strip_prefix("$ ")
                 .unwrap_or(&clean_text)
@@ -141,9 +123,6 @@ fn extract_readme_links_and_code() -> HashMap<String, LinkAndCode> {
 
 #[test]
 fn test_readme_video_links() {
-    let readme = fs::read_to_string("README.md").unwrap();
-    let lines: Vec<&str> = readme.lines().collect();
-
     let links_and_code = extract_readme_links_and_code();
     for (script_name, link_and_code) in links_and_code {
         assert!(
@@ -152,43 +131,23 @@ fn test_readme_video_links() {
             script_name,
             link_and_code.clean_text
         );
-    }
-
-    for (i, line) in lines.iter().enumerate() {
-        // Look for video links ending in .mp4
-        if line.contains(".mp4") && line.contains("](") {
-            let script_name = get_script_name(line);
-            println!("script_name: {}", script_name);
-
-            // Check script exists
-            assert!(
-                Path::new(&script_name).exists(),
-                "Expected script {} to exist for video link in line: {}",
-                script_name,
-                line
+        assert!(
+            Path::new(&script_name).exists(),
+            "Expected script {} to exist for video link in line: {}",
+            script_name,
+            link_and_code.script_name
+        );
+        let script_content = fs::read_to_string(&script_name).unwrap();
+        let clean_script = clean_content(&script_content);
+        let clean_script = drop_export_line(&clean_script);
+        let clean_script = remove_spaces_prefix(&clean_script);
+        if link_and_code.clean_text != clean_script {
+            println!("\nREADME code:\n{}\n", link_and_code.clean_text);
+            println!("Script code:\n{}\n", clean_script);
+            panic!(
+                "Script {} content doesn't match README text before link",
+                script_name
             );
-
-            // Find and clean the text before the video link
-            let text_before = find_code_block_before(&lines, i);
-            let clean_text = extract_code_block(&text_before);
-            let clean_text = clean_content(&clean_text);
-            let clean_text = drop_export_line(&clean_text);
-            let clean_text = clean_text.strip_prefix("$ ").unwrap_or(&clean_text);
-
-            // Read and clean the actual script
-            let script_content = fs::read_to_string(&script_name).unwrap();
-            let clean_script = clean_content(&script_content);
-            let clean_script = drop_export_line(&clean_script);
-            let clean_script = remove_spaces_prefix(&clean_script);
-
-            if clean_text != clean_script {
-                println!("\nREADME code:\n{}\n", clean_text);
-                println!("Script code:\n{}\n", clean_script);
-                panic!(
-                    "Script {} content doesn't match README text before link",
-                    script_name
-                );
-            }
         }
     }
 }
