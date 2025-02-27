@@ -160,7 +160,7 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("--release");
     cmd.assert().success();
 
-    for file in &files {
+    for file in files {
         let path = Path::new(out_dir).join(file);
         assert!(path.exists(), "file {} does not exist", file);
     }
