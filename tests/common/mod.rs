@@ -6,6 +6,10 @@ pub fn bin() -> Command {
     Command::cargo_bin("trv").unwrap()
 }
 
+pub fn is_ci() -> bool {
+    std::env::var("CI").unwrap_or("false".to_string()) == "true"
+}
+
 #[allow(dead_code)]
 /// Load a key from the local .env file.
 ///

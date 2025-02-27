@@ -152,7 +152,7 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("--input=tests/test.typ");
     cmd.arg("--voice=en-US-Chirp-HD-D");
     cmd.arg("--language-code=en-US");
-    if std::env::var("CI").unwrap_or_default() == "true" {
+    if common::is_ci() {
         cmd.arg("--audio-codec=opus");
     } else {
         cmd.arg("--audio-codec=aac_at");
