@@ -2,17 +2,7 @@
 
 Transform slides and speaker notes into video.
 
-## Installation
-
-```sh
-cargo install trv
-```
-
-Or with [`cargo binstall`](https://github.com/cargo-bins/cargo-binstall):
-
-```sh
-cargo binstall trv
-```
+[![Demo video](https://transformrs.github.io/trv/demo.png)](https://transformrs.github.io/trv/demo.mp4)
 
 ## Usage
 
@@ -25,19 +15,17 @@ To create a video, create a Typst presentation with speaker notes (we show only 
 
 #set page(paper: "presentation-16-9")
 
-#set text(size: 25pt)
-
 #slide[
-    #toolbox.pdfpc.speaker-note(
-    ```md
-    What if you could easily generate videos from text?
-    ```
-    )
     #set page(fill: black)
     #set text(fill: white)
     #v(6em)
     #set text(size: 35pt)
     #align(center)[*Text to video*]
+    #toolbox.pdfpc.speaker-note(
+    ```md
+    What if you could easily generate videos from text?
+    ```
+    )
 ]
 ```
 
@@ -165,3 +153,15 @@ So `trv` should also work with providers other than DeepInfra.
 However, during testing, I got the best results with Kokoros or DeepInfra for the lowest price.
 
 For example, OpenAI text-to-speech requires any video to contain a "clear disclosure" that the voice they are hearing is AI-generated.
+
+## Installation
+
+```sh
+cargo install trv
+```
+
+Or with [`cargo binstall`](https://github.com/cargo-bins/cargo-binstall):
+
+```sh
+cargo binstall trv
+```

@@ -45,16 +45,32 @@ jobs:
             # Required by google.sh
             mkdir _out/
 
-            convert -size 500x500 xc:none -draw "polygon 150,100 150,400 400,250 fill white" play_button.png
+            convert -size 500x500 xc:none -fill white -draw "polygon 150,100 150,400 400,250" play_button.png
+
+            # Generate a speaker symbol to indicate audio in videos
+            convert -size 100x100 xc:none \
+                -fill white \
+                -draw "path 'M 30,30 L 30,70 L 50,70 L 70,90 L 70,10 L 50,30 L 30,30 Z'" \
+                -draw "path 'M 80,25 A 20,20 0 0 1 80,75'" \
+                -draw "path 'M 90,15 A 35,35 0 0 1 90,85'" \
+                speaker_symbol.png
+
+            # Combine play button with speaker symbol
+            convert play_button.png speaker_symbol.png -gravity southeast -geometry +20+20 -composite play_with_audio.png
+
+            ./examples/demo.sh
+            mv _out/release.mp4 _public/demo.mp4
+            convert _out/image/1.png play_with_audio.png -gravity center -composite tmp.png
+            mv tmp.png _public/demo.png
 
             ./examples/google.sh
             mv _out/release.mp4 _public/google.mp4
-            convert _out/image/1.png play_button.png -gravity center -composite tmp.png
+            convert _out/image/1.png play_with_audio.png -gravity center -composite tmp.png
             mv tmp.png _public/google.png
 
             ./examples/first.sh
             mv _out/release.mp4 _public/first.mp4
-            convert _out/image/1.png play_button.png -gravity center -composite tmp.png
+            convert _out/image/1.png play_with_audio.png -gravity center -composite tmp.png
             mv tmp.png _public/first.png
 
       - name: Cleanup
