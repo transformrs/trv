@@ -2,24 +2,44 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-fn find_text_before(lines: &[&str], start_index: usize) -> String {
-    let mut text = String::new();
+fn find_code_block_before(lines: &[&str], start_index: usize) -> String {
     let mut i = start_index;
+    let mut in_code_block = false;
+    let mut code_block_lines = Vec::new();
+
     while i > 0 {
         i -= 1;
-        let line = lines[i].trim();
-        if line.is_empty() {
-            continue;
+        let line = lines[i];
+
+        // Check for code block markers
+        if line.trim().starts_with("```") {
+            if in_code_block {
+                // We found the start of the code block (going backwards)
+                break;
+            } else {
+                // We found the end of the code block (going backwards)
+                in_code_block = true;
+                continue;
+            }
         }
+
+        // Collect lines inside the code block
+        if in_code_block {
+            code_block_lines.push(line);
+        }
+
         // Stop when we hit a heading or another link
-        if line.starts_with('#') || (line.contains("](") && line.contains(".mp4")) {
+        if !in_code_block
+            && (line.trim().starts_with('#') || (line.contains("](") && line.contains(".mp4")))
+        {
             break;
         }
-        // Add non-empty lines to the beginning of our text
-        if !line.is_empty() {
-            text = format!("{}\n{}", line, text);
-        }
     }
+
+    // Reverse the lines since we collected them backwards
+    code_block_lines.reverse();
+    let text = code_block_lines.join("\n");
+
     text.trim().to_string()
 }
 
@@ -99,9 +119,9 @@ fn extract_readme_links_and_code() -> HashMap<String, LinkAndCode> {
             let script_name = get_script_name(line);
 
             // Find and clean the text before the video link
-            let text_before = find_text_before(&lines, i);
-            let clean_text = extract_code_block(&text_before);
-            let clean_text = clean_content(&clean_text);
+            let text_before = find_code_block_before(&lines, i);
+            let clean_text = clean_content(&text_before);
+            println!("clean_text:\n---\n{}\n---", clean_text);
             let clean_text = drop_export_line(&clean_text);
             let clean_text = clean_text
                 .strip_prefix("$ ")
@@ -149,7 +169,7 @@ fn test_readme_video_links() {
             );
 
             // Find and clean the text before the video link
-            let text_before = find_text_before(&lines, i);
+            let text_before = find_code_block_before(&lines, i);
             let clean_text = extract_code_block(&text_before);
             let clean_text = clean_content(&clean_text);
             let clean_text = drop_export_line(&clean_text);
