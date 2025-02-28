@@ -2,28 +2,19 @@
 
 #set page(paper: "presentation-16-9")
 
-#set text(size: 25pt)
-
 #slide[
-    #toolbox.pdfpc.speaker-note(
-    ```md
-    What if you could easily generate videos from text?
-    ```
-    )
     #set page(fill: black)
     #set text(fill: white)
-    #v(6em)
+    #v(8em)
     #set text(size: 35pt)
     #align(center)[*Text to video*]
+
+    #toolbox.pdfpc.speaker-note("
+      What if you could easily generate videos from text?
+    ")
 ]
 
 #slide[
-    #toolbox.pdfpc.speaker-note(
-    ```md
-    That would be pretty cool.
-    Here is a plan to make it happen.
-    ```
-    )
     #set page(fill: black, margin: 3em)
     #set text(fill: white)
     #set text(size: 45pt)
@@ -34,4 +25,9 @@
       
       *Step 3:* Profit!
     ]
+
+    #toolbox.pdfpc.speaker-note("
+      That would be pretty cool.
+      Here is a plan to make it happen.
+    ")
 ]
