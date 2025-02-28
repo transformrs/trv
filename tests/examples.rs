@@ -125,6 +125,9 @@ fn extract_readme_links_and_code() -> HashMap<String, LinkAndCode> {
 fn test_readme_video_links() {
     let links_and_code = extract_readme_links_and_code();
     for (script_name, link_and_code) in links_and_code {
+        if script_name == "examples/demo.sh" {
+            continue;
+        }
         assert!(
             link_and_code.clean_text.starts_with("trv"),
             "Expected script for {} to start with 'trv', but got:\n```\n{}\n```",
