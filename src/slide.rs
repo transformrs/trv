@@ -93,17 +93,15 @@ fn test_find_end() {
 }
 
 fn slides(input: &str) -> Vec<Slide> {
-    let slide = Regex::new(r"#slide\[[^\]]*\]").unwrap();
-    slide
-        .captures_iter(input)
+    find_regions(input, "#slide[", Symbol::SquareBracket)
+        .iter()
         .enumerate()
-        .map(|(idx, cap)| {
-            let content = cap[0].to_string();
+        .map(|(idx, content)| {
             let speaker_note = speaker_note(&content);
             let idx = (idx + 1) as u64;
             Slide {
                 idx,
-                content,
+                content: content.to_string(),
                 speaker_note,
             }
         })
