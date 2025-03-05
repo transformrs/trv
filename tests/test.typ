@@ -5,23 +5,17 @@
 #set text(size: 25pt)
 
 #slide[
-    #toolbox.pdfpc.speaker-note(
-    ```md
-    ...... What if you could show code in a video?
-    ```
-    )
-
     \
     #align(center)[Code examples or code videos?]
+
+    #toolbox.pdfpc.speaker-note(
+        ```md
+        ...... What if you could show code in a video?
+        ```
+    )
 ]
 
 #slide[
-    #toolbox.pdfpc.speaker-note(
-    ```md
-    For example, take this code.
-    ```
-    )
-
     #set text(size: 20pt)
 
     ```rust
@@ -30,5 +24,11 @@
         println!("Hello, world!");
     }
     ```
+
+    #toolbox.pdfpc.speaker-note(
+        ```md
+        For example, take this code.
+        ```
+    )
 ]
 

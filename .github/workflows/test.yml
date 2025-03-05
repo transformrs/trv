@@ -22,6 +22,11 @@ jobs:
         with:
           prefix-key: 'test'
 
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/typst
+          key: typst
+
       - uses: FedericoCarboni/setup-ffmpeg@v3
 
       - uses: taiki-e/install-action@v2

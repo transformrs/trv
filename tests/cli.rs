@@ -17,7 +17,7 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
+fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = Path::new("tests").join("_out");
     let out_dir = out_dir.to_str().unwrap();
     println!("out_dir: {out_dir}");
@@ -30,6 +30,8 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
         "audio/2.mp3",
         "audio/1.audio.cache_key",
         "video/1.mkv",
+        "video/2.mkv",
+        "video/1.video.cache_key",
         "concat_list.txt",
         "out.mkv",
     ];
@@ -48,9 +50,7 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains(
-            "Generating audio file for slide 1",
-        ))
+        .stdout(predicate::str::contains("Slide 1: Generating audio file"))
         .stdout(predicate::str::contains("Skipping").not());
 
     for file in &files {
@@ -68,11 +68,12 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
         .success()
+        .stdout(predicate::str::contains("Slide 1: Generating audio file"))
         .stdout(predicate::str::contains(
-            "Generating audio file for slide 1",
+            "Slide 1: Skipping audio generation due to cache",
         ))
         .stdout(predicate::str::contains(
-            "Skipping audio generation for slide 1 due to cache",
+            "Slide 1: Skipping video generation due to cache",
         ));
 
     Ok(())

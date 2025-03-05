@@ -1,6 +1,7 @@
 mod audio;
 mod image;
 mod path;
+mod slide;
 mod video;
 
 use clap::Parser;
@@ -126,13 +127,38 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
-/// Copy the input file to the output directory.
+fn include_includes(input_dir: &Path, content: &str) -> String {
+    let mut output = String::new();
+    for line in content.lines() {
+        if line.starts_with("#include") {
+            let include = line.split_whitespace().nth(1).unwrap().trim_matches('"');
+            let include_path = input_dir.join(include);
+            tracing::info!("Including file: {}", include_path.display());
+            let content = std::fs::read_to_string(include_path).unwrap();
+            for line in content.lines() {
+                output.push_str(line);
+                output.push('\n');
+            }
+        } else {
+            output.push_str(line);
+            output.push('\n');
+        }
+    }
+    output
+}
+
+/// Copy the Typst input file to the output directory.
 ///
-/// Typst requires the input to be present in the project directory.
-fn copy_input(input: &str, dir: &str) -> PathBuf {
-    let path = Path::new(dir).join("input.typ");
-    std::fs::copy(input, &path).unwrap();
-    path
+/// This is necessary because Typst requires the input to be present in the
+/// project directory.
+fn copy_input_with_includes(dir: &str, input: &str) -> PathBuf {
+    let output_path = Path::new(dir).join("input.typ");
+    let content = std::fs::read_to_string(input).unwrap();
+    let input_dir = Path::new(input).parent().unwrap();
+    let content = include_includes(input_dir, &content);
+    std::fs::write(&output_path, content).unwrap();
+
+    output_path
 }
 
 #[tokio::main]
@@ -149,7 +175,7 @@ async fn main() {
     if !path.exists() {
         std::fs::create_dir_all(path).unwrap();
     }
-    let input = copy_input(&args.input, dir);
+    let input = copy_input_with_includes(dir, &args.input);
 
     let provider = args.provider.map(|p| provider_from_str(&p));
     let provider = provider.unwrap_or(Provider::DeepInfra);
@@ -165,7 +191,10 @@ async fn main() {
         language_code: args.language_code.clone(),
     };
 
-    let slides = image::presenter_notes(&args.input);
+    let slides = slide::slides(input.to_str().unwrap());
+    if slides.is_empty() {
+        panic!("No slides found in input file: {}", args.input);
+    }
     image::generate_images(&input, dir);
     let audio_ext = config.output_format.clone().unwrap_or("mp3".to_string());
     audio::generate_audio_files(
@@ -180,7 +209,7 @@ async fn main() {
     .await;
     // Using mkv by default because it supports more audio formats.
     let output = "out.mkv";
-    video::generate_video(dir, &slides, output, &audio_ext);
+    video::generate_video(dir, &slides, args.cache, &config, output, &audio_ext);
     if args.release {
         video::generate_release_video(dir, output, "release.mp4", &args.audio_codec);
     }

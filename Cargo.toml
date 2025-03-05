@@ -17,6 +17,7 @@ tracing = "0.1"
 transformrs = "0.7"
 serde_json = "1.0.138"
 serde = { version = "1", features = ["derive"] }
+sha2 = "0.10.8"
 
 [dev-dependencies]
 assert_cmd = "2"

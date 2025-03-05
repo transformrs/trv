@@ -1,6 +1,6 @@
-use crate::image::NewSlide;
 use crate::path::audio_cache_key_path;
 use crate::path::audio_path;
+use crate::slide::Slide;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fs::File;
@@ -11,16 +11,16 @@ use transformrs::Keys;
 use transformrs::Provider;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CacheKey {
+struct AudioCacheKey {
     text: String,
     config: TTSConfig,
 }
 
-fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
+fn write_cache_key(dir: &str, slide: &Slide, config: &TTSConfig) {
     let txt_path = audio_cache_key_path(dir, slide);
     let mut file = File::create(txt_path).unwrap();
-    let text = slide.note.clone();
-    let cache_key = CacheKey {
+    let text = slide.speaker_note.clone();
+    let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
     };
@@ -29,20 +29,20 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
 }
 
 /// Whether the audio file for the given slide exists and is for the same slide.
-fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -> bool {
+fn is_cached(dir: &str, slide: &Slide, config: &TTSConfig, audio_ext: &str) -> bool {
     let txt_path = audio_cache_key_path(dir, slide);
     let audio_path = audio_path(dir, slide, audio_ext);
     if !txt_path.exists() || !audio_path.exists() {
         return false;
     }
-    let contents = std::fs::read_to_string(txt_path).unwrap();
-    let text = slide.note.clone();
-    let cache_key = CacheKey {
+    let stored_key = std::fs::read_to_string(txt_path).unwrap();
+    let text = slide.speaker_note.clone();
+    let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
     };
-    let serialized = serde_json::to_string(&cache_key).unwrap();
-    contents == serialized
+    let current_info = serde_json::to_string(&cache_key).unwrap();
+    stored_key == current_info
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -50,7 +50,7 @@ async fn generate_audio_file(
     provider: &Provider,
     keys: &Keys,
     dir: &str,
-    slide: &NewSlide,
+    slide: &Slide,
     cache: bool,
     config: &TTSConfig,
     model: &Option<String>,
@@ -78,10 +78,11 @@ async fn generate_audio_file(
         }
         _ => get_key(keys, provider),
     };
-    let msg = &slide.note;
-    if cache && is_cached(dir, slide, config, audio_ext) {
+    let msg = &slide.speaker_note;
+    let is_cached = cache && is_cached(dir, slide, config, audio_ext);
+    if is_cached {
         tracing::info!(
-            "Skipping audio generation for slide {} due to cache",
+            "Slide {}: Skipping audio generation due to cache",
             slide.idx
         );
         return;
@@ -101,7 +102,7 @@ async fn generate_audio_file(
     }
     let mut file = File::create(path).unwrap();
     file.write_all(&bytes).unwrap();
-    if cache {
+    if cache && !is_cached {
         write_cache_key(dir, slide, config);
     }
 }
@@ -109,7 +110,7 @@ async fn generate_audio_file(
 pub async fn generate_audio_files(
     provider: &Provider,
     dir: &str,
-    slides: &Vec<NewSlide>,
+    slides: &Vec<Slide>,
     cache: bool,
     config: &TTSConfig,
     model: &Option<String>,
@@ -119,8 +120,8 @@ pub async fn generate_audio_files(
     // keys from environment variables).
     let keys = transformrs::load_keys("not_used.env");
     for slide in slides {
-        let idx = crate::path::idx(slide);
-        tracing::info!("Generating audio file for slide {idx}");
+        let idx = slide.idx;
+        tracing::info!("Slide {idx}: Generating audio file...");
         generate_audio_file(provider, &keys, dir, slide, cache, config, model, audio_ext).await;
     }
 }
