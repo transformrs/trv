@@ -58,26 +58,38 @@ fn find_end(content: &str, start: usize, symbol: Symbol) -> usize {
 }
 
 fn find_regions(content: &str, start_pattern: &str, symbol: Symbol) -> Vec<String> {
-    content.match_indices(start_pattern).map(|(idx, _)| {
-        let start = idx;
-        let end = find_end(content, start, symbol);
-        content[start..end].to_string()
-    }).collect()
+    content
+        .match_indices(start_pattern)
+        .map(|(idx, _)| {
+            let start = idx;
+            let end = find_end(content, start, symbol);
+            content[start..end].to_string()
+        })
+        .collect()
 }
 
 #[test]
 fn test_find_end() {
     let content = r#"
     #slide[
-        #align(center)[#align(right)[foo]]
+        #align(center)[#align(right)[first]]
         foo
+    ]
+    #slide[
+        two
     ]
     bar
     "#;
     let regions = find_regions(content, "#slide[", Symbol::SquareBracket);
-    assert_eq!(regions.len(), 1);
+    assert_eq!(regions.len(), 2);
     assert!(regions[0].starts_with("#slide["));
     assert!(regions[0].ends_with("]"));
+    assert!(regions[0].contains("right"));
+    assert!(!regions[0].contains("two"));
+    assert!(!regions[0].contains("bar"));
+    assert!(regions[0].contains("foo"));
+    assert!(regions[1].contains("two"));
+    assert!(!regions[1].contains("bar"));
 }
 
 fn slides(input: &str) -> Vec<Slide> {
