@@ -1,9 +1,8 @@
-use crate::image::NewSlide;
-use crate::path::idx;
 use crate::path::video_cache_key_path;
 use crate::path::video_dir_name;
 use crate::path::video_path;
 use crate::path::PathStr;
+use crate::slide::Slide;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fs::File;
@@ -13,11 +12,11 @@ use transformrs::text_to_speech::TTSConfig;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct VideoCacheKey {
-    slide: NewSlide,
+    slide: Slide,
     config: TTSConfig,
 }
 
-fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
+fn write_cache_key(dir: &str, slide: &Slide, config: &TTSConfig) {
     let path = video_cache_key_path(dir, slide);
     let mut file = File::create(path).unwrap();
     let cache_key = VideoCacheKey {
@@ -28,7 +27,7 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
         .unwrap();
 }
 
-fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig) -> bool {
+fn is_cached(dir: &str, slide: &Slide, config: &TTSConfig) -> bool {
     let key_path = video_cache_key_path(dir, slide);
     let video_path = video_path(dir, slide);
     if !key_path.exists() || !video_path.exists() {
@@ -43,7 +42,7 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig) -> bool {
     stored_key == current_info
 }
 
-fn generate_concat_list(dir: &str, slides: &Vec<NewSlide>) -> String {
+fn generate_concat_list(dir: &str, slides: &Vec<Slide>) -> String {
     let mut lines = Vec::new();
     for slide in slides {
         let path = crate::path::video_path(dir, slide);
@@ -57,27 +56,27 @@ fn generate_concat_list(dir: &str, slides: &Vec<NewSlide>) -> String {
     lines.join("\n")
 }
 
-fn write_concat_list(dir: &str, path: &str, slides: &Vec<NewSlide>) {
+fn write_concat_list(dir: &str, path: &str, slides: &Vec<Slide>) {
     let concat_list = generate_concat_list(dir, slides);
     std::fs::write(path, concat_list).expect("couldn't write concat list");
 }
 
-fn create_video_clip(dir: &str, slide: &NewSlide, cache: bool, config: &TTSConfig, ext: &str) {
-    tracing::info!("Slide {}: Generating video file...", idx(slide));
+fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, ext: &str) {
+    tracing::info!("Slide {}: Generating video file...", slide.idx);
     let input_audio = crate::path::audio_path(dir, slide, ext);
     let input_image = crate::path::image_path(dir, slide);
     let is_cached = cache && is_cached(dir, slide, config);
     if is_cached {
         tracing::info!(
             "Slide {}: Skipping video generation due to cache",
-            idx(slide)
+            slide.idx
         );
         return;
     }
     let output_video = crate::path::video_path(dir, slide);
-    let idx = idx(slide);
     tracing::info!(
-        "Slide {idx}: Creating video clip {}",
+        "Slide {}: Creating video clip {}",
+        slide.idx,
         output_video.to_string()
     );
     let output = std::process::Command::new("ffmpeg")
@@ -104,7 +103,8 @@ fn create_video_clip(dir: &str, slide: &NewSlide, cache: bool, config: &TTSConfi
         std::process::exit(1);
     }
     tracing::info!(
-        "Slide {idx}: Created video clip {}",
+        "Slide {}: Created video clip {}",
+        slide.idx,
         output_video.to_string()
     );
     if cache && !is_cached {
@@ -114,7 +114,7 @@ fn create_video_clip(dir: &str, slide: &NewSlide, cache: bool, config: &TTSConfi
 
 fn create_video_clips(
     dir: &str,
-    slides: &Vec<NewSlide>,
+    slides: &Vec<Slide>,
     cache: bool,
     config: &TTSConfig,
     audio_ext: &str,
@@ -154,7 +154,7 @@ fn concat_video_clips(concat_list: &str, output_path: &str) {
 
 pub fn generate_video(
     dir: &str,
-    slides: &Vec<NewSlide>,
+    slides: &Vec<Slide>,
     cache: bool,
     config: &TTSConfig,
     output: &str,

@@ -1,4 +1,4 @@
-use crate::image::NewSlide;
+use crate::slide::Slide;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -12,31 +12,26 @@ impl PathStr for PathBuf {
     }
 }
 
-pub fn idx(slide: &NewSlide) -> u64 {
-    // Typst png files start at one, while slide.idx at zero.
-    slide.idx + 1
-}
-
-pub fn audio_path(dir: &str, slide: &NewSlide, audio_ext: &str) -> PathBuf {
-    let idx = idx(slide);
+pub fn audio_path(dir: &str, slide: &Slide, audio_ext: &str) -> PathBuf {
+    let idx = slide.idx;
     let filename = format!("{idx}.{audio_ext}");
     Path::new(dir).join("audio").join(filename)
 }
 
-pub fn image_path(dir: &str, slide: &NewSlide) -> PathBuf {
-    let idx = idx(slide);
+pub fn image_path(dir: &str, slide: &Slide) -> PathBuf {
+    let idx = slide.idx;
     let filename = format!("{idx}.png");
     Path::new(dir).join("image").join(filename)
 }
 
-pub fn audio_cache_key_path(dir: &str, slide: &NewSlide) -> PathBuf {
-    let idx = idx(slide);
+pub fn audio_cache_key_path(dir: &str, slide: &Slide) -> PathBuf {
+    let idx = slide.idx;
     let filename = format!("{idx}.audio.cache_key");
     Path::new(dir).join("audio").join(filename)
 }
 
-pub fn video_cache_key_path(dir: &str, slide: &NewSlide) -> PathBuf {
-    let idx = idx(slide);
+pub fn video_cache_key_path(dir: &str, slide: &Slide) -> PathBuf {
+    let idx = slide.idx;
     let filename = format!("{idx}.video.cache_key");
     Path::new(dir).join("video").join(filename)
 }
@@ -45,8 +40,8 @@ pub fn video_dir_name() -> &'static str {
     "video"
 }
 
-pub fn video_path(dir: &str, slide: &NewSlide) -> PathBuf {
-    let idx = idx(slide);
+pub fn video_path(dir: &str, slide: &Slide) -> PathBuf {
+    let idx = slide.idx;
     // Using mkv by default because it supports more audio formats.
     let filename = format!("{idx}.mkv");
     Path::new(dir).join(video_dir_name()).join(filename)

@@ -1,7 +1,6 @@
-use crate::image::NewSlide;
 use crate::path::audio_cache_key_path;
 use crate::path::audio_path;
-use crate::path::idx;
+use crate::slide::Slide;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fs::File;
@@ -17,7 +16,7 @@ struct AudioCacheKey {
     config: TTSConfig,
 }
 
-fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
+fn write_cache_key(dir: &str, slide: &Slide, config: &TTSConfig) {
     let txt_path = audio_cache_key_path(dir, slide);
     let mut file = File::create(txt_path).unwrap();
     let text = slide.speaker_note.clone();
@@ -30,7 +29,7 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
 }
 
 /// Whether the audio file for the given slide exists and is for the same slide.
-fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -> bool {
+fn is_cached(dir: &str, slide: &Slide, config: &TTSConfig, audio_ext: &str) -> bool {
     let txt_path = audio_cache_key_path(dir, slide);
     let audio_path = audio_path(dir, slide, audio_ext);
     if !txt_path.exists() || !audio_path.exists() {
@@ -51,7 +50,7 @@ async fn generate_audio_file(
     provider: &Provider,
     keys: &Keys,
     dir: &str,
-    slide: &NewSlide,
+    slide: &Slide,
     cache: bool,
     config: &TTSConfig,
     model: &Option<String>,
@@ -84,7 +83,7 @@ async fn generate_audio_file(
     if is_cached {
         tracing::info!(
             "Slide {}: Skipping audio generation due to cache",
-            idx(slide)
+            slide.idx
         );
         return;
     }
@@ -111,7 +110,7 @@ async fn generate_audio_file(
 pub async fn generate_audio_files(
     provider: &Provider,
     dir: &str,
-    slides: &Vec<NewSlide>,
+    slides: &Vec<Slide>,
     cache: bool,
     config: &TTSConfig,
     model: &Option<String>,
@@ -121,7 +120,7 @@ pub async fn generate_audio_files(
     // keys from environment variables).
     let keys = transformrs::load_keys("not_used.env");
     for slide in slides {
-        let idx = idx(slide);
+        let idx = slide.idx;
         tracing::info!("Slide {idx}: Generating audio file...");
         generate_audio_file(provider, &keys, dir, slide, cache, config, model, audio_ext).await;
     }

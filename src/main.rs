@@ -1,6 +1,7 @@
 mod audio;
 mod image;
 mod path;
+mod slide;
 mod video;
 
 use clap::Parser;
@@ -165,7 +166,7 @@ async fn main() {
         language_code: args.language_code.clone(),
     };
 
-    let slides = image::presenter_notes(&args.input);
+    let slides = slide::slides(&args.input);
     image::generate_images(&input, dir);
     let audio_ext = config.output_format.clone().unwrap_or("mp3".to_string());
     audio::generate_audio_files(
