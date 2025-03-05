@@ -175,7 +175,6 @@ async fn main() {
     if !path.exists() {
         std::fs::create_dir_all(path).unwrap();
     }
-    println!("args.input: {}", args.input);
     let input = copy_input_with_includes(dir, &args.input);
 
     let provider = args.provider.map(|p| provider_from_str(&p));

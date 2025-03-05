@@ -124,11 +124,6 @@ fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, 
         tracing::error!("Failed to create video clip: {stderr}");
         std::process::exit(1);
     }
-    tracing::info!(
-        "Slide {}: Created video clip {}",
-        slide.idx,
-        output_video.to_string()
-    );
     if cache && !is_cached {
         write_cache_key(dir, slide, config);
     }
