@@ -41,6 +41,11 @@ jobs:
         with:
           key: "release-${{ matrix.target }}"
 
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/typst
+          key: typst
+
       - run: |
           if [[ ${{ matrix.os }} = "windows-latest" ]]; then
             EXT=".exe"
