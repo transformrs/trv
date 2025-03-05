@@ -17,7 +17,7 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
+fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = Path::new("tests").join("_out");
     let out_dir = out_dir.to_str().unwrap();
     println!("out_dir: {out_dir}");

@@ -1,3 +1,4 @@
+use crate::path::image_path;
 use crate::path::video_cache_key_path;
 use crate::path::video_dir_name;
 use crate::path::video_path;
@@ -5,7 +6,10 @@ use crate::path::PathStr;
 use crate::slide::Slide;
 use serde::Deserialize;
 use serde::Serialize;
+use sha2::Digest;
+use sha2::Sha256;
 use std::fs::File;
+use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use transformrs::text_to_speech::TTSConfig;
@@ -14,15 +18,30 @@ use transformrs::text_to_speech::TTSConfig;
 struct VideoCacheKey {
     slide: Slide,
     config: TTSConfig,
+    image_hash: Vec<u8>,
+}
+
+fn hash_file(path: &Path) -> Vec<u8> {
+    let mut file = File::open(path).unwrap();
+    let mut hasher = Sha256::new();
+    let mut buffer = Vec::new();
+    if let Ok(_) = file.read_to_end(&mut buffer) {
+        hasher.update(&buffer);
+    }
+    hasher.finalize().to_vec()
 }
 
 fn write_cache_key(dir: &str, slide: &Slide, config: &TTSConfig) {
-    let path = video_cache_key_path(dir, slide);
-    let mut file = File::create(path).unwrap();
+    let image_path = image_path(dir, slide);
+    let image_hash = hash_file(&image_path);
+
     let cache_key = VideoCacheKey {
         slide: slide.clone(),
         config: config.clone(),
+        image_hash: image_hash,
     };
+    let output_path = video_cache_key_path(dir, slide);
+    let mut file = File::create(output_path).unwrap();
     file.write_all(serde_json::to_string(&cache_key).unwrap().as_bytes())
         .unwrap();
 }
@@ -34,9 +53,12 @@ fn is_cached(dir: &str, slide: &Slide, config: &TTSConfig) -> bool {
         return false;
     }
     let stored_key = std::fs::read_to_string(key_path).unwrap();
+    let image_path = image_path(dir, slide);
+    let image_hash = hash_file(&image_path);
     let cache_key = VideoCacheKey {
         slide: slide.clone(),
         config: config.clone(),
+        image_hash: image_hash,
     };
     let current_info = serde_json::to_string(&cache_key).unwrap();
     stored_key == current_info
