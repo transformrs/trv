@@ -63,6 +63,7 @@ fn write_concat_list(dir: &str, path: &str, slides: &Vec<NewSlide>) {
 }
 
 fn create_video_clip(dir: &str, slide: &NewSlide, cache: bool, config: &TTSConfig, ext: &str) {
+    tracing::info!("Slide {}: Generating video file...", idx(slide));
     let input_audio = crate::path::audio_path(dir, slide, ext);
     let input_image = crate::path::image_path(dir, slide);
     let is_cached = cache && is_cached(dir, slide, config);

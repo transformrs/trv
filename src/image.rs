@@ -12,7 +12,7 @@ pub struct NewSlide {
     pub overlay: u64,
     #[allow(dead_code)]
     pub logical_slide: u64,
-    pub note: String,
+    pub speaker_note: String,
 }
 
 impl NewSlide {
@@ -20,12 +20,12 @@ impl NewSlide {
         let idx = idx.get("v").and_then(|v| v.as_u64()).unwrap();
         let overlay = overlay.get("v").and_then(|v| v.as_u64()).unwrap();
         let logical_slide = logical_slide.get("v").and_then(|v| v.as_u64()).unwrap();
-        let note = note.get("v").and_then(|v| v.as_str()).unwrap();
+        let speaker_note = note.get("v").and_then(|v| v.as_str()).unwrap();
         Self {
             idx,
             overlay,
             logical_slide,
-            note: note.to_string(),
+            speaker_note: speaker_note.to_string(),
         }
     }
 }

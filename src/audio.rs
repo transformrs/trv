@@ -20,7 +20,7 @@ struct AudioCacheKey {
 fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
     let txt_path = audio_cache_key_path(dir, slide);
     let mut file = File::create(txt_path).unwrap();
-    let text = slide.note.clone();
+    let text = slide.speaker_note.clone();
     let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
@@ -37,7 +37,7 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -
         return false;
     }
     let stored_key = std::fs::read_to_string(txt_path).unwrap();
-    let text = slide.note.clone();
+    let text = slide.speaker_note.clone();
     let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
@@ -79,7 +79,7 @@ async fn generate_audio_file(
         }
         _ => get_key(keys, provider),
     };
-    let msg = &slide.note;
+    let msg = &slide.speaker_note;
     let is_cached = cache && is_cached(dir, slide, config, audio_ext);
     if is_cached {
         tracing::info!(
