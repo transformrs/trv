@@ -96,11 +96,6 @@ fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, 
         return;
     }
     let output_video = crate::path::video_path(dir, slide);
-    tracing::info!(
-        "Slide {}: Creating video clip {}",
-        slide.idx,
-        output_video.to_string()
-    );
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
         .arg("-loop")
