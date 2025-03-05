@@ -66,8 +66,11 @@ fn test_find_end() {
     ]
     bar
     "#;
-    let slide_pattern = "#slide[";
-    let start = content.find(slide_pattern).unwrap();
+    let starts = content
+        .match_indices("#slide[")
+        .map(|(idx, _)| idx)
+        .collect::<Vec<_>>();
+    let start = starts[0];
     let end = find_end(content, start, Symbol::SquareBracket);
     let result = content[start..end].to_string();
     assert!(result.starts_with("#slide["));
