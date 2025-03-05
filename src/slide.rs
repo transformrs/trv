@@ -1,4 +1,3 @@
-use regex::Regex;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -10,18 +9,22 @@ pub struct Slide {
 }
 
 fn speaker_note(content: &str) -> String {
-    println!("content: {content:?}");
-    let rx = Regex::new(r"pdfpc\.speaker-note\(([^\)]*)\)").unwrap();
-    if let Some(cap) = rx.captures(content) {
-        cap[1]
+    let regions = find_regions(content, r#"pdfpc.speaker-note"#, Symbol::Parenthesis);
+    if regions.len() == 1 {
+        regions[0]
+            .trim_start_matches("pdfpc.speaker-note(")
+            .trim()
+            .trim_end_matches(")")
             .trim()
             .trim_matches('"')
             .trim_start_matches("```md")
             .trim_end_matches("```")
             .trim()
             .to_string()
-    } else {
+    } else if regions.is_empty() {
         "".to_string()
+    } else {
+        panic!("Expected 0 or 1 regions, got {}", regions.len());
     }
 }
 
@@ -97,7 +100,7 @@ fn slides(input: &str) -> Vec<Slide> {
         .iter()
         .enumerate()
         .map(|(idx, content)| {
-            let speaker_note = speaker_note(&content);
+            let speaker_note = speaker_note(content);
             let idx = (idx + 1) as u64;
             Slide {
                 idx,
