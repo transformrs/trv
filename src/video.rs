@@ -119,14 +119,12 @@ fn create_video_clips(
     config: &TTSConfig,
     audio_ext: &str,
 ) {
+    let output_video = crate::path::video_path(dir, slides.first().unwrap());
+    let parent = output_video.parent().unwrap();
+    if !parent.exists() {
+        std::fs::create_dir_all(parent).unwrap();
+    }
     for slide in slides {
-        if slide.idx == 1 {
-            let output_video = crate::path::video_path(dir, slide);
-            let parent = output_video.parent().unwrap();
-            if !parent.exists() {
-                std::fs::create_dir_all(parent).unwrap();
-            }
-        }
         create_video_clip(dir, slide, cache, config, audio_ext);
     }
 }
