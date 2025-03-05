@@ -35,7 +35,7 @@ enum Symbol {
 }
 
 fn find_end(content: &str, start: usize, symbol: Symbol) -> usize {
-    // println!("find_end: {}", &content[start..start + 40]);
+    // println!("find_end: {start}\n{}", &content[start..start + 80]);
     let mut depth = 0;
     let chars = content.chars().skip(start).collect::<Vec<_>>();
     let start_char = match symbol {
@@ -166,5 +166,35 @@ mod tests {
         assert!(slides[0]
             .speaker_note
             .contains("What if you could show code in a video?"));
+    }
+
+    #[test]
+    fn test_demo() {
+        let input = r#"
+            #slide[
+                first
+
+                #toolbox.pdfpc.speaker-note("first note")
+            ]
+
+            #slide[
+                ```typ
+                #import "@preview/polylux:0.4.0": *
+                #set page(paper: "presentation-16-9")
+
+                #slide[
+                    Hello
+
+                    #toolbox.pdfpc.speaker-note("
+                    This page contains Hello
+                    ")
+                ]
+                ```
+
+                #toolbox.pdfpc.speaker-note("second note")
+            ]
+        "#;
+        let slides = slides(input);
+        assert_eq!(slides.len(), 2);
     }
 }
