@@ -11,7 +11,7 @@ use transformrs::Keys;
 use transformrs::Provider;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CacheKey {
+struct AudioCacheKey {
     text: String,
     config: TTSConfig,
 }
@@ -20,7 +20,7 @@ fn write_cache_key(dir: &str, slide: &NewSlide, config: &TTSConfig) {
     let txt_path = audio_cache_key_path(dir, slide);
     let mut file = File::create(txt_path).unwrap();
     let text = slide.note.clone();
-    let cache_key = CacheKey {
+    let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
     };
@@ -37,7 +37,7 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -
     }
     let contents = std::fs::read_to_string(txt_path).unwrap();
     let text = slide.note.clone();
-    let cache_key = CacheKey {
+    let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
     };

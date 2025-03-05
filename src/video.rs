@@ -22,27 +22,6 @@ fn write_concat_list(dir: &str, path: &str, slides: &Vec<NewSlide>) {
     std::fs::write(path, concat_list).expect("couldn't write concat list");
 }
 
-fn concat_video_clips(concat_list: &str, output_path: &str) {
-    let output = std::process::Command::new("ffmpeg")
-        .arg("-y")
-        .arg("-f")
-        .arg("concat")
-        .arg("-i")
-        .arg(concat_list)
-        .arg("-c")
-        .arg("copy")
-        .arg(output_path)
-        .output()
-        .expect("Failed to run ffmpeg command");
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        tracing::error!("Failed to concat video clips: {stderr}");
-        std::process::exit(1);
-    } else {
-        tracing::info!("Concatenated video clips into {output_path}");
-    }
-}
-
 fn create_video_clip(dir: &str, slide: &NewSlide, ext: &str) {
     let input_audio = crate::path::audio_path(dir, slide, ext);
     let input_image = crate::path::image_path(dir, slide);
@@ -85,6 +64,27 @@ fn create_video_clips(dir: &str, slides: &Vec<NewSlide>, audio_ext: &str) {
             }
         }
         create_video_clip(dir, slide, audio_ext);
+    }
+}
+
+fn concat_video_clips(concat_list: &str, output_path: &str) {
+    let output = std::process::Command::new("ffmpeg")
+        .arg("-y")
+        .arg("-f")
+        .arg("concat")
+        .arg("-i")
+        .arg(concat_list)
+        .arg("-c")
+        .arg("copy")
+        .arg(output_path)
+        .output()
+        .expect("Failed to run ffmpeg command");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        tracing::error!("Failed to concat video clips: {stderr}");
+        std::process::exit(1);
+    } else {
+        tracing::info!("Concatenated video clips into {output_path}");
     }
 }
 

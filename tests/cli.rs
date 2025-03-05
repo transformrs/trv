@@ -75,6 +75,7 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
             "Skipping audio generation for slide 1 due to cache",
         ));
 
+    assert!(false);
     Ok(())
 }
 
