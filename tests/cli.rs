@@ -30,6 +30,8 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
         "audio/2.mp3",
         "audio/1.audio.cache_key",
         "video/1.mkv",
+        "video/2.mkv",
+        "video/1.video.cache_key",
         "concat_list.txt",
         "out.mkv",
     ];
@@ -48,9 +50,7 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains(
-            "Slide 1: Generating audio file",
-        ))
+        .stdout(predicate::str::contains("Slide 1: Generating audio file"))
         .stdout(predicate::str::contains("Skipping").not());
 
     for file in &files {
@@ -68,15 +68,14 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains(
-            "Slide 1: Generating audio file",
-        ))
+        .stdout(predicate::str::contains("Slide 1: Generating audio file"))
         .stdout(predicate::str::contains(
             "Slide 1: Skipping audio generation due to cache",
+        ))
+        .stdout(predicate::str::contains(
+            "Slide 1: Skipping video generation due to cache",
         ));
 
-    let output = cmd.output().unwrap();
-    assert!(false, "{}", String::from_utf8_lossy(&output.stdout));
     Ok(())
 }
 

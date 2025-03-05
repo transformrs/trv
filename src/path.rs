@@ -35,6 +35,12 @@ pub fn audio_cache_key_path(dir: &str, slide: &NewSlide) -> PathBuf {
     Path::new(dir).join("audio").join(filename)
 }
 
+pub fn video_cache_key_path(dir: &str, slide: &NewSlide) -> PathBuf {
+    let idx = idx(slide);
+    let filename = format!("{idx}.video.cache_key");
+    Path::new(dir).join("video").join(filename)
+}
+
 pub fn video_dir_name() -> &'static str {
     "video"
 }

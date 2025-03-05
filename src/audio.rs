@@ -1,8 +1,8 @@
 use crate::image::NewSlide;
 use crate::path::audio_cache_key_path;
 use crate::path::audio_path;
-use serde::Deserialize;
 use crate::path::idx;
+use serde::Deserialize;
 use serde::Serialize;
 use std::fs::File;
 use std::io::Write;
@@ -36,14 +36,14 @@ fn is_cached(dir: &str, slide: &NewSlide, config: &TTSConfig, audio_ext: &str) -
     if !txt_path.exists() || !audio_path.exists() {
         return false;
     }
-    let contents = std::fs::read_to_string(txt_path).unwrap();
+    let stored_key = std::fs::read_to_string(txt_path).unwrap();
     let text = slide.note.clone();
     let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
     };
-    let serialized = serde_json::to_string(&cache_key).unwrap();
-    contents == serialized
+    let current_info = serde_json::to_string(&cache_key).unwrap();
+    stored_key == current_info
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -80,7 +80,8 @@ async fn generate_audio_file(
         _ => get_key(keys, provider),
     };
     let msg = &slide.note;
-    if cache && is_cached(dir, slide, config, audio_ext) {
+    let is_cached = cache && is_cached(dir, slide, config, audio_ext);
+    if is_cached {
         tracing::info!(
             "Slide {}: Skipping audio generation due to cache",
             idx(slide)
@@ -102,7 +103,7 @@ async fn generate_audio_file(
     }
     let mut file = File::create(path).unwrap();
     file.write_all(&bytes).unwrap();
-    if cache {
+    if cache && !is_cached {
         write_cache_key(dir, slide, config);
     }
 }
