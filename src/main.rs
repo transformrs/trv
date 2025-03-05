@@ -167,7 +167,7 @@ async fn main() {
     };
 
     let slides = slide::slides_from_file(&args.input);
-    if slides.len() == 0 {
+    if slides.is_empty() {
         panic!("No slides found in input file: {}", args.input);
     }
     image::generate_images(&input, dir);
