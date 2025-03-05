@@ -166,7 +166,10 @@ async fn main() {
         language_code: args.language_code.clone(),
     };
 
-    let slides = slide::slides(&args.input);
+    let slides = slide::slides_from_file(&args.input);
+    if slides.len() == 0 {
+        panic!("No slides found in input file: {}", args.input);
+    }
     image::generate_images(&input, dir);
     let audio_ext = config.output_format.clone().unwrap_or("mp3".to_string());
     audio::generate_audio_files(

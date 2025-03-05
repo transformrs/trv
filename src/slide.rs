@@ -24,7 +24,7 @@ fn speaker_note(content: &str) -> String {
     }
 }
 
-pub fn slides(input: &str) -> Vec<Slide> {
+fn slides(input: &str) -> Vec<Slide> {
     let slide = Regex::new(r"#slide\[[^\]]*\]").unwrap();
     slide
         .captures_iter(input)
@@ -40,6 +40,11 @@ pub fn slides(input: &str) -> Vec<Slide> {
             }
         })
         .collect()
+}
+
+pub fn slides_from_file(input: &str) -> Vec<Slide> {
+    let input = std::fs::read_to_string(input).unwrap();
+    slides(&input)
 }
 
 #[cfg(test)]
