@@ -120,7 +120,7 @@ fn create_video_clips(
     audio_ext: &str,
 ) {
     for slide in slides {
-        if slide.idx == 0 {
+        if slide.idx == 1 {
             let output_video = crate::path::video_path(dir, slide);
             let parent = output_video.parent().unwrap();
             if !parent.exists() {

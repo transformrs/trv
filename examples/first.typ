@@ -21,7 +21,7 @@
     #align(left)[
       *Step 1:* Generate videos
 
-      *Step 2:* ..
+      *Step 2:* ...?
       
       *Step 3:* Profit!
     ]
