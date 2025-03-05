@@ -2,6 +2,7 @@ use crate::image::NewSlide;
 use crate::path::audio_cache_key_path;
 use crate::path::audio_path;
 use serde::Deserialize;
+use crate::path::idx;
 use serde::Serialize;
 use std::fs::File;
 use std::io::Write;
@@ -81,8 +82,8 @@ async fn generate_audio_file(
     let msg = &slide.note;
     if cache && is_cached(dir, slide, config, audio_ext) {
         tracing::info!(
-            "Skipping audio generation for slide {} due to cache",
-            slide.idx
+            "Slide {}: Skipping audio generation due to cache",
+            idx(slide)
         );
         return;
     }
@@ -119,8 +120,8 @@ pub async fn generate_audio_files(
     // keys from environment variables).
     let keys = transformrs::load_keys("not_used.env");
     for slide in slides {
-        let idx = crate::path::idx(slide);
-        tracing::info!("Generating audio file for slide {idx}");
+        let idx = idx(slide);
+        tracing::info!("Slide {idx}: Generating audio file...");
         generate_audio_file(provider, &keys, dir, slide, cache, config, model, audio_ext).await;
     }
 }

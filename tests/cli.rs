@@ -49,7 +49,7 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::contains(
-            "Generating audio file for slide 1",
+            "Slide 1: Generating audio file",
         ))
         .stdout(predicate::str::contains("Skipping").not());
 
@@ -69,13 +69,14 @@ fn audio_cache() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::contains(
-            "Generating audio file for slide 1",
+            "Slide 1: Generating audio file",
         ))
         .stdout(predicate::str::contains(
-            "Skipping audio generation for slide 1 due to cache",
+            "Slide 1: Skipping audio generation due to cache",
         ));
 
-    assert!(false);
+    let output = cmd.output().unwrap();
+    assert!(false, "{}", String::from_utf8_lossy(&output.stdout));
     Ok(())
 }
 

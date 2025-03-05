@@ -1,6 +1,7 @@
 use crate::image::NewSlide;
 use crate::path::video_dir_name;
 use crate::path::PathStr;
+use crate::path::idx;
 use std::path::Path;
 
 fn generate_concat_list(dir: &str, slides: &Vec<NewSlide>) -> String {
@@ -26,7 +27,8 @@ fn create_video_clip(dir: &str, slide: &NewSlide, ext: &str) {
     let input_audio = crate::path::audio_path(dir, slide, ext);
     let input_image = crate::path::image_path(dir, slide);
     let output_video = crate::path::video_path(dir, slide);
-    tracing::info!("Creating video clip {}", output_video.to_string());
+    let idx = idx(slide);
+    tracing::info!("Slide {idx}: Creating video clip {}", output_video.to_string());
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
         .arg("-loop")
@@ -50,7 +52,7 @@ fn create_video_clip(dir: &str, slide: &NewSlide, ext: &str) {
         tracing::error!("Failed to create video clip: {stderr}");
         std::process::exit(1);
     } else {
-        tracing::info!("Created video clip {}", output_video.to_string());
+        tracing::info!("Slide {idx}: Created video clip {}", output_video.to_string());
     }
 }
 
