@@ -192,7 +192,7 @@ async fn main() {
         language_code: args.language_code.clone(),
     };
 
-    let slides = slide::slides_from_file(input.to_str().unwrap());
+    let slides = slide::slides(input.to_str().unwrap());
     if slides.is_empty() {
         panic!("No slides found in input file: {}", args.input);
     }

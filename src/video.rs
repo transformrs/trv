@@ -25,7 +25,7 @@ fn hash_file(path: &Path) -> Vec<u8> {
     let mut file = File::open(path).unwrap();
     let mut hasher = Sha256::new();
     let mut buffer = Vec::new();
-    if let Ok(_) = file.read_to_end(&mut buffer) {
+    if file.read_to_end(&mut buffer).is_ok() {
         hasher.update(&buffer);
     }
     hasher.finalize().to_vec()
@@ -38,7 +38,7 @@ fn write_cache_key(dir: &str, slide: &Slide, config: &TTSConfig) {
     let cache_key = VideoCacheKey {
         slide: slide.clone(),
         config: config.clone(),
-        image_hash: image_hash,
+        image_hash,
     };
     let output_path = video_cache_key_path(dir, slide);
     let mut file = File::create(output_path).unwrap();
@@ -58,7 +58,7 @@ fn is_cached(dir: &str, slide: &Slide, config: &TTSConfig) -> bool {
     let cache_key = VideoCacheKey {
         slide: slide.clone(),
         config: config.clone(),
-        image_hash: image_hash,
+        image_hash,
     };
     let current_info = serde_json::to_string(&cache_key).unwrap();
     stored_key == current_info

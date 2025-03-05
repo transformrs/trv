@@ -1,200 +1,65 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::Value;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Slide {
     pub idx: u64,
-    pub content: String,
     pub speaker_note: String,
 }
 
-fn speaker_note(content: &str) -> String {
-    let regions = find_regions(content, r#"pdfpc.speaker-note"#, Symbol::Parenthesis);
-    if regions.len() == 1 {
-        regions[0]
-            .trim_start_matches("pdfpc.speaker-note(")
-            .trim()
-            .trim_end_matches(")")
-            .trim()
-            .trim_matches('"')
-            .trim_start_matches("```md")
-            .trim_end_matches("```")
-            .trim()
-            .to_string()
-    } else if regions.is_empty() {
-        "".to_string()
-    } else {
-        panic!("Expected 0 or 1 regions, got {}", regions.len());
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-enum Symbol {
-    SquareBracket,
-    Parenthesis,
-}
-
-fn find_end(content: &str, start: usize, symbol: Symbol) -> usize {
-    // println!("find_end: {start}\n{}", &content[start..start + 80]);
-    let mut depth = 0;
-    let chars = content.chars().skip(start).collect::<Vec<_>>();
-    let start_char = match symbol {
-        Symbol::SquareBracket => '[',
-        Symbol::Parenthesis => '(',
-    };
-    let mut has_started = false;
-    let end_char = match symbol {
-        Symbol::SquareBracket => ']',
-        Symbol::Parenthesis => ')',
-    };
-    for (i, c) in chars.iter().enumerate() {
-        if c == &start_char {
-            depth += 1;
-            has_started = true;
-        } else if c == &end_char {
-            depth -= 1;
-        }
-        if depth == 0 && has_started {
-            return i + start + 1;
+impl Slide {
+    fn new(idx: &Value, speaker_note: &Value) -> Self {
+        let idx = idx.get("v").and_then(|v| v.as_u64()).unwrap();
+        // Typst generates images starting at index 1.
+        let idx = idx + 1;
+        let speaker_note = speaker_note.get("v").and_then(|v| v.as_str()).unwrap();
+        Self {
+            idx,
+            speaker_note: speaker_note.to_string(),
         }
     }
-    panic!("No end found");
 }
 
-fn find_regions(content: &str, start_pattern: &str, symbol: Symbol) -> Vec<String> {
-    let mut regions = Vec::new();
-    let mut start = 0;
-    // Only searching after the end of the last region to avoid nested slides in
-    // examples showing up as separate regions.
-    while let Some(idx) = content[start..].find(start_pattern) {
-        let absolute_idx = start + idx;
-        let end = find_end(content, absolute_idx, symbol);
-        regions.push(content[absolute_idx..end].to_string());
-        start = end;
+fn query_presenter_notes(input: &str) -> Value {
+    let output = std::process::Command::new("typst")
+        .arg("query")
+        .arg(input)
+        .arg("<pdfpc>")
+        .arg("--field=value")
+        .output()
+        .expect("Failed to run typst presenter-notes command");
+
+    let text = String::from_utf8_lossy(&output.stdout);
+    match serde_json::from_str::<Value>(&text) {
+        Ok(json) => json,
+        Err(e) => {
+            tracing::error!("Error parsing JSON: {}", e);
+            tracing::error!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
+            std::process::exit(1);
+        }
     }
-    regions
 }
 
-#[test]
-fn test_find_end() {
-    let content = r#"
-    #slide[
-        #align(center)[#align(right)[first]]
-        foo
-    ]
-    #slide[
-        two
-    ]
-    bar
-    "#;
-    let regions = find_regions(content, "#slide[", Symbol::SquareBracket);
-    assert_eq!(regions.len(), 2);
-    assert!(regions[0].starts_with("#slide["));
-    assert!(regions[0].ends_with("]"));
-    assert!(regions[0].contains("right"));
-    assert!(!regions[0].contains("two"));
-    assert!(!regions[0].contains("bar"));
-    assert!(regions[0].contains("foo"));
-    assert!(regions[1].contains("two"));
-    assert!(!regions[1].contains("bar"));
-}
+pub fn slides(input: &str) -> Vec<Slide> {
+    let json = query_presenter_notes(input);
 
-fn slides(input: &str) -> Vec<Slide> {
-    find_regions(input, "#slide[", Symbol::SquareBracket)
-        .iter()
-        .enumerate()
-        .map(|(idx, content)| {
-            let speaker_note = speaker_note(content);
-            let idx = (idx + 1) as u64;
-            Slide {
-                idx,
-                content: content.to_string(),
-                speaker_note,
+    let values = json.as_array().expect("Expected JSON array");
+
+    let mut slides = Vec::new();
+
+    for i in 0..values.len() {
+        let note = &values[i];
+        if let Some(obj) = note.as_object() {
+            if let Some(t) = obj.get("t") {
+                if t == "NewSlide" {
+                    let idx = &values[i + 1];
+                    let speaker_note = &values[i + 4];
+                    let slide = Slide::new(idx, speaker_note);
+                    slides.push(slide);
+                }
             }
-        })
-        .collect()
-}
-
-pub fn slides_from_file(input: &str) -> Vec<Slide> {
-    let input = std::fs::read_to_string(input).unwrap();
-    slides(&input)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_slides() {
-        let input = r#"
-        #slide[
-            #align(center)[first]
-            
-            #toolbox.pdfpc.speaker-note("
-            first note
-            ")
-        ]
-
-        #slide[
-            #v(8em)
-            second
-
-            #toolbox.pdfpc.speaker-note(
-            ```md
-            second note
-            ```
-            )
-        ]
-        "#;
-        let slides = slides(input);
-        assert_eq!(slides.len(), 2);
-        assert_eq!(slides[0].idx, 1);
-        assert!(slides[0].content.contains("first"));
-        assert_eq!(slides[0].speaker_note, "first note");
-        assert_eq!(slides[1].idx, 2);
-        assert!(slides[1].content.contains("second"));
-        assert_eq!(slides[1].speaker_note, "second note");
+        }
     }
-
-    #[test]
-    fn test_slides_from_file() {
-        let input = "tests/test.typ";
-        let slides = slides_from_file(input);
-        assert_eq!(slides.len(), 2);
-        assert_eq!(slides[0].idx, 1);
-        assert!(slides[0].content.contains("Code examples or code videos?"));
-        assert!(slides[0]
-            .speaker_note
-            .contains("What if you could show code in a video?"));
-    }
-
-    #[test]
-    fn test_demo() {
-        let input = r#"
-            #slide[
-                first
-
-                #toolbox.pdfpc.speaker-note("first note")
-            ]
-
-            #slide[
-                ```typ
-                #import "@preview/polylux:0.4.0": *
-                #set page(paper: "presentation-16-9")
-
-                #slide[
-                    Hello
-
-                    #toolbox.pdfpc.speaker-note("
-                    This page contains Hello
-                    ")
-                ]
-                ```
-
-                #toolbox.pdfpc.speaker-note("second note")
-            ]
-        "#;
-        let slides = slides(input);
-        assert_eq!(slides.len(), 2);
-    }
+    slides
 }
