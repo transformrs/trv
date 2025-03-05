@@ -35,6 +35,7 @@ enum Symbol {
 }
 
 fn find_end(content: &str, start: usize, symbol: Symbol) -> usize {
+    // println!("find_end: {}", &content[start..start + 40]);
     let mut depth = 0;
     let chars = content.chars().skip(start).collect::<Vec<_>>();
     let start_char = match symbol {
@@ -61,14 +62,17 @@ fn find_end(content: &str, start: usize, symbol: Symbol) -> usize {
 }
 
 fn find_regions(content: &str, start_pattern: &str, symbol: Symbol) -> Vec<String> {
-    content
-        .match_indices(start_pattern)
-        .map(|(idx, _)| {
-            let start = idx;
-            let end = find_end(content, start, symbol);
-            content[start..end].to_string()
-        })
-        .collect()
+    let mut regions = Vec::new();
+    let mut start = 0;
+    // Only searching after the end of the last region to avoid nested slides in
+    // examples showing up as separate regions.
+    while let Some(idx) = content[start..].find(start_pattern) {
+        let absolute_idx = start + idx;
+        let end = find_end(content, absolute_idx, symbol);
+        regions.push(content[absolute_idx..end].to_string());
+        start = end;
+    }
+    regions
 }
 
 #[test]
