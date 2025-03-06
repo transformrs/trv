@@ -139,7 +139,7 @@ fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, 
     }
 }
 
-fn create_video_clips(
+pub(crate) fn create_video_clips(
     dir: &str,
     slides: &Vec<Slide>,
     cache: bool,
@@ -180,15 +180,7 @@ fn concat_video_clips(concat_list: &str, output_path: &str) {
     }
 }
 
-pub fn generate_video(
-    dir: &str,
-    slides: &Vec<Slide>,
-    cache: bool,
-    config: &TTSConfig,
-    output: &str,
-    audio_ext: &str,
-) {
-    create_video_clips(dir, slides, cache, config, audio_ext);
+pub(crate) fn combine_video(dir: &str, slides: &Vec<Slide>, output: &str) {
     let output = Path::new(dir).join(output);
     let output = output.to_str().unwrap();
     let concat_list = Path::new(dir).join("concat_list.txt");
