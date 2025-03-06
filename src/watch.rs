@@ -147,7 +147,7 @@ fn spawn_server(args: &Arguments) {
     tracing::info!("Starting server at http://{}", addr);
     let options = live_server::Options {
         // In Chrome, hard reloads are required to see video previews.
-        hard_reload: true,
+        hard_reload: false,
         ..Default::default()
     };
 
