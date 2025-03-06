@@ -139,9 +139,11 @@ fn remove_old_files(args: &Arguments, timestamp: u64) {
     }
 }
 
-async fn watch_build(input: PathBuf, args: &Arguments) {
+async fn watch_build(watch_args: &WatchArgs, args: &Arguments) {
     let release = false;
-    let slides = build(input.clone(), args, release).await;
+    let input = watch_args.input.clone();
+    let audio_codec = None;
+    let slides = build(input.clone(), args, release, audio_codec).await;
     let timestamp = move_files_into_public(args, &slides);
     build_index(args, &slides, timestamp, false);
     remove_old_files(args, timestamp);
@@ -184,12 +186,12 @@ pub async fn watch(watch_args: &WatchArgs, args: &Arguments) {
     let timestamp = timestamp();
     build_index(args, &slides, timestamp, true);
     spawn_server(watch_args, args);
-    watch_build(input.clone(), args).await;
+    watch_build(watch_args, args).await;
 
     for result in &rx {
         match result {
             Ok(_event) => {
-                watch_build(input.clone(), args).await;
+                watch_build(watch_args, args).await;
                 // Drain the channel to avoid processing old events.
                 while rx.try_recv().is_ok() {}
             }
