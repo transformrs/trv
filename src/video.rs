@@ -78,6 +78,19 @@ fn generate_concat_list(dir: &str, slides: &Vec<Slide>) -> String {
     lines.join("\n")
 }
 
+fn set_default_ffmpeg_video_args(cmd: &mut std::process::Command) {
+    cmd.arg("-c:v")
+        .arg("libx264")
+        .arg("-crf")
+        .arg("23")
+        .arg("-preset")
+        .arg("fast")
+        .arg("-vf")
+        .arg(format!("scale=-1:{HEIGHT},format=yuv420p"))
+        .arg("-pix_fmt")
+        .arg("yuv420p");
+}
+
 fn write_concat_list(dir: &str, path: &str, slides: &Vec<Slide>) {
     let concat_list = generate_concat_list(dir, slides);
     std::fs::write(path, concat_list).expect("couldn't write concat list");
@@ -101,34 +114,24 @@ fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, 
         return;
     }
     let output_video = crate::path::video_path(dir, slide);
-    let output = std::process::Command::new("ffmpeg")
-        .arg("-y")
+    let mut cmd = std::process::Command::new("ffmpeg");
+    cmd.arg("-y")
         .arg("-loop")
         .arg("1")
         .arg("-i")
         .arg(input_image)
         .arg("-i")
-        .arg(input_audio)
-        .arg("-c:v")
-        .arg("libx264")
-        .arg("-crf")
-        .arg("23")
-        .arg("-preset")
-        .arg("fast")
-        .arg("-vf")
-        .arg(format!("scale=-1:{HEIGHT},format=yuv420p"))
-        .arg("-pix_fmt")
-        .arg("yuv420p")
-        .arg("-c:a")
+        .arg(input_audio);
+    set_default_ffmpeg_video_args(&mut cmd);
+    cmd.arg("-c:a")
         .arg("opus")
         .arg("-strict")
         .arg("experimental")
         .arg("-shortest")
         .arg("-tune")
         .arg("stillimage")
-        .arg(output_video.clone())
-        .output()
-        .expect("Failed to run ffmpeg command");
+        .arg(output_video.clone());
+    let output = cmd.output().expect("Failed to run ffmpeg command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         tracing::error!("Failed to create video clip: {stderr}");
@@ -139,7 +142,7 @@ fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, 
     }
 }
 
-fn create_video_clips(
+pub(crate) fn create_video_clips(
     dir: &str,
     slides: &Vec<Slide>,
     cache: bool,
@@ -159,7 +162,13 @@ fn create_video_clips(
     }
 }
 
-fn concat_video_clips(concat_list: &str, output_path: &str) {
+pub(crate) fn combine_video(dir: &str, slides: &Vec<Slide>, output: &str, audio_codec: &str) {
+    let output = Path::new(dir).join(output);
+    let output_path = output.to_str().unwrap();
+    let concat_list = Path::new(dir).join("concat_list.txt");
+    let concat_list = concat_list.to_str().unwrap();
+    write_concat_list(dir, concat_list, slides);
+
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
         .arg("-f")
@@ -168,6 +177,10 @@ fn concat_video_clips(concat_list: &str, output_path: &str) {
         .arg(concat_list)
         .arg("-c")
         .arg("copy")
+        .arg("-c:a")
+        .arg(audio_codec)
+        .arg("-strict")
+        .arg("experimental")
         .arg(output_path)
         .output()
         .expect("Failed to run ffmpeg command");
@@ -176,57 +189,6 @@ fn concat_video_clips(concat_list: &str, output_path: &str) {
         tracing::error!("Failed to concat video clips: {stderr}");
         std::process::exit(1);
     } else {
-        tracing::info!("Concatenated video clips into {output_path}");
-    }
-}
-
-pub fn generate_video(
-    dir: &str,
-    slides: &Vec<Slide>,
-    cache: bool,
-    config: &TTSConfig,
-    output: &str,
-    audio_ext: &str,
-) {
-    create_video_clips(dir, slides, cache, config, audio_ext);
-    let output = Path::new(dir).join(output);
-    let output = output.to_str().unwrap();
-    let concat_list = Path::new(dir).join("concat_list.txt");
-    let concat_list = concat_list.to_str().unwrap();
-    write_concat_list(dir, concat_list, slides);
-    concat_video_clips(concat_list, output);
-}
-
-pub fn generate_release_video(dir: &str, input: &str, output: &str, audio_codec: &str) {
-    let input_path = Path::new(dir).join(input);
-    let output_path = Path::new(dir).join(output);
-    let output_path = output_path.to_str().unwrap();
-    let mut cmd = std::process::Command::new("ffmpeg");
-    let output = cmd
-        .arg("-y")
-        .arg("-i")
-        .arg(input_path)
-        .arg("-c:v")
-        .arg("libx264")
-        .arg("-crf")
-        .arg("23")
-        .arg("-preset")
-        .arg("fast")
-        .arg("-vf")
-        .arg(format!("scale=-1:{HEIGHT},format=yuv420p"))
-        .arg("-c:a")
-        .arg(audio_codec)
-        .arg("-strict")
-        .arg("experimental")
-        .arg(output_path)
-        .output()
-        .expect("Failed to run ffmpeg command");
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        tracing::error!("Failed to create release video: {stderr}");
-        std::process::exit(1);
-    } else {
-        tracing::info!("Created release video {}", output_path);
+        tracing::info!("Combined video clips into {output_path}");
     }
 }

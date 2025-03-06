@@ -1,6 +1,7 @@
 use crate::build;
 use crate::slide::Slide;
 use crate::Arguments;
+use crate::WatchArgs;
 use live_server::listen;
 use notify::recommended_watcher;
 use notify::Event;
@@ -89,7 +90,7 @@ fn public_dir(args: &Arguments) -> PathBuf {
 fn build_index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) {
     let index = index(args, slides, timestamp, init);
     let path = public_dir(args).join("index.html");
-    tracing::info!("Writing index.html.");
+    tracing::info!("Writing index.html");
     std::fs::write(path, index).unwrap();
 }
 
@@ -138,17 +139,19 @@ fn remove_old_files(args: &Arguments, timestamp: u64) {
     }
 }
 
-async fn watch_build(input: PathBuf, args: &Arguments) {
-    let slides = build(input.clone(), args).await;
+async fn watch_build(watch_args: &WatchArgs, args: &Arguments) {
+    let release = false;
+    let input = watch_args.input.clone();
+    let audio_codec = None;
+    let slides = build(input.clone(), args, release, audio_codec).await;
     let timestamp = move_files_into_public(args, &slides);
     build_index(args, &slides, timestamp, false);
     remove_old_files(args, timestamp);
 }
 
-fn spawn_server(args: &Arguments) {
+fn spawn_server(watch_args: &WatchArgs, args: &Arguments) {
     let root = format!("./{}", public_dir(args).display());
-
-    let addr = "127.0.0.1:8080";
+    let addr = format!("127.0.0.1:{}", watch_args.port);
     tracing::info!("Starting server at http://{}", addr);
     let options = live_server::Options {
         // In Chrome, hard reloads are required to see video previews.
@@ -166,9 +169,10 @@ fn spawn_server(args: &Arguments) {
     });
 }
 
-pub async fn watch(input: PathBuf, args: &Arguments) {
+pub async fn watch(watch_args: &WatchArgs, args: &Arguments) {
     let (tx, rx) = mpsc::channel::<Result<Event>>();
     let mut watcher = recommended_watcher(tx).unwrap();
+    let input = watch_args.input.clone();
     watcher
         .watch(&input, notify::RecursiveMode::NonRecursive)
         .expect("Failed to watch");
@@ -181,13 +185,13 @@ pub async fn watch(input: PathBuf, args: &Arguments) {
     let slides = [];
     let timestamp = timestamp();
     build_index(args, &slides, timestamp, true);
-    spawn_server(args);
-    watch_build(input.clone(), args).await;
+    spawn_server(watch_args, args);
+    watch_build(watch_args, args).await;
 
     for result in &rx {
         match result {
             Ok(_event) => {
-                watch_build(input.clone(), args).await;
+                watch_build(watch_args, args).await;
                 // Drain the channel to avoid processing old events.
                 while rx.try_recv().is_ok() {}
             }

@@ -91,15 +91,32 @@ fn test_parse_config() {
 }
 
 #[derive(Clone, Debug, Parser)]
-struct BuildArgs {
+pub(crate) struct BuildArgs {
     /// Path to the Typst input file.
     input: PathBuf,
+
+    /// Audio codec.
+    ///
+    /// This setting is passed to ffmpeg.
+    ///
+    /// Opus generally gives the best quality for the lowest file size, but is
+    /// not supported by all platforms. For example, Whatsapp Web and X don't
+    /// accept it.
+    ///
+    /// So therefore on MacOS set the value to `aac_at` and on Linux to
+    /// `libfdk_aac`.
+    #[arg(long, default_value = "opus")]
+    audio_codec: String,
 }
 
 #[derive(Clone, Debug, Parser)]
-struct WatchArgs {
+pub(crate) struct WatchArgs {
     /// Path to the Typst input file.
     input: PathBuf,
+
+    /// Port to run the server on.
+    #[arg(long, default_value = "8080")]
+    port: u16,
 }
 
 #[derive(Clone, Debug, clap::Subcommand)]
@@ -128,26 +145,6 @@ pub(crate) struct Arguments {
     /// Enable caching.
     #[arg(long, default_value = "true")]
     cache: Option<bool>,
-
-    /// Release.
-    ///
-    /// If true, attempt to convert the output video into a format that is more
-    /// widely supported.
-    #[arg(long, default_value = "false")]
-    release: bool,
-
-    /// Audio codec.
-    ///
-    /// This setting is passed to ffmpeg.
-    ///
-    /// Opus generally gives the best quality for the lowest file size, but is
-    /// not supported by all platforms. For example, Whatsapp Web and X don't
-    /// accept it.
-    ///
-    /// So therefore on MacOS set the value to `aac_at` and on Linux to
-    /// `libfdk_aac`.
-    #[arg(long, default_value = "opus")]
-    audio_codec: String,
 }
 
 // TODO: This logic should be in the transformrs crate as `Provider::from_str`.
@@ -218,7 +215,12 @@ fn copy_input_with_includes(dir: &str, input: &PathBuf) -> PathBuf {
     output_path
 }
 
-pub(crate) async fn build(input: PathBuf, args: &Arguments) -> Vec<Slide> {
+pub(crate) async fn build(
+    input: PathBuf,
+    args: &Arguments,
+    release: bool,
+    audio_codec: Option<String>,
+) -> Vec<Slide> {
     let out_dir = &args.out_dir;
     let copied_input = copy_input_with_includes(out_dir, &input);
     let config = parse_config(&copied_input);
@@ -258,9 +260,10 @@ pub(crate) async fn build(input: PathBuf, args: &Arguments) -> Vec<Slide> {
     )
     .await;
     let output = "out.mp4";
-    video::generate_video(out_dir, &slides, cache, &tts_config, output, &audio_ext);
-    if args.release {
-        video::generate_release_video(out_dir, output, "release.mp4", &args.audio_codec);
+    video::create_video_clips(out_dir, &slides, cache, &tts_config, &audio_ext);
+    if release {
+        let audio_codec = audio_codec.unwrap();
+        video::combine_video(out_dir, &slides, output, &audio_codec);
     }
     slides
 }
@@ -282,8 +285,10 @@ async fn main() {
 
     match args.task {
         Task::Build(ref build_args) => {
-            let _ = build(build_args.input.clone(), &args).await;
+            let release = true;
+            let audio_codec = Some(build_args.audio_codec.clone());
+            let _ = build(build_args.input.clone(), &args, release, audio_codec).await;
         }
-        Task::Watch(ref watch_args) => watch(watch_args.input.clone(), &args).await,
+        Task::Watch(ref watch_args) => watch(watch_args, &args).await,
     };
 }

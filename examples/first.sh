@@ -2,4 +2,4 @@
 
 # Run via `./examples/first.sh`
 
-trv --release build examples/first.typ
+trv build examples/first.typ
