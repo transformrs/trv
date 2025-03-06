@@ -32,13 +32,7 @@ To create a video, create a Typst presentation with speaker notes (we show only 
 Next, run the following command:
 
 ```raw
-$ trv --input=examples/first.typ \
-    --provider='openai-compatible(kokoros.transformrs.org)' \
-    --model=tts-1 \
-    --voice=af_sky \
-    --speed=0.95 \
-    --audio-format=wav \
-    --release
+$ trv --release build examples/first.typ
 ```
 
 This generates the following video:
@@ -99,11 +93,7 @@ Google has some high-quality voices available via their API:
 ```raw
 $ export GOOGLE_KEY="<YOUR KEY>"
 
-$ trv --input=examples/google.typ \
-    --provider=google \
-    --voice=en-US-Chirp-HD-D \
-    --language-code=en-US \
-    --release
+$ trv --release build examples/google.typ
 ```
 
 [![Google demo video](https://transformrs.github.io/trv/google.png)](https://transformrs.github.io/trv/google.mp4)
@@ -118,13 +108,20 @@ However, audio output is not yet available via the API.
 To use the Zyphra Zonos model, you need 8 GB of VRAM.
 So it's probably easiest to use DeepInfra:
 
+```typst
+#import "@preview/polylux:0.4.0": *
+
+// --- trv config:
+// provider = "deepinfra"
+// model = "Zyphra/Zonos-v0.1-hybrid"
+// voice = "american_male"
+// ---
+```
+
 ```raw
 $ export DEEPINFRA_KEY="<YOUR KEY>"
 
-$ trv --input=presentation.typ \
-    --model='Zyphra/Zonos-v0.1-hybrid' \
-    --voice='american_male' \
-    --release
+$ trv --release build presentation.typ
 ```
 
 Do note that Zonos is way more unstable than Kokoros at the time of writing.
