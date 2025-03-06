@@ -34,7 +34,7 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
         .collect::<Vec<_>>()
         .join("\n");
     let waiting_text = if init {
-        "Waiting for first build... Page will update when done."
+        "Waiting for first build... Page will update when done. This might take a while..."
     } else {
         ""
     };
@@ -71,11 +71,12 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
             </style>
             <script>
                 function refresh() {{
-                    console.log('Adding random postfix to video sources');
+                    console.log('Reloading page. This might take a while...');
 
-                    // Add random postfix to video sources on initial load
+                    console.log('Adding random postfix to video sources');
                     document.querySelectorAll('video').forEach(video => {{
                         const sources = video.querySelectorAll('source');
+                        console.log('Adding random postfix to video');
                         sources.forEach(source => {{
                             // Remove any existing timestamp parameter
                             let src = source.src.split('?')[0];
@@ -86,7 +87,6 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
                         video.load();
                     }});
 
-                    console.log('Reloading page');
                     window.location.reload();
                 }};
 
@@ -128,7 +128,7 @@ fn build_index(args: &Arguments, slides: &[Slide], init: bool) {
     let out_dir = &args.out_dir;
     let index = index(args, slides, init);
     let path = Path::new(out_dir).join("index.html");
-    tracing::info!("Writing index.html");
+    tracing::info!("Writing index.html. It might take the browser a few seconds to reload the page.");
     std::fs::write(path, index).unwrap();
 }
 
