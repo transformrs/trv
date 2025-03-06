@@ -18,7 +18,7 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
-    let out_dir = Path::new("tests").join("_out");
+    let out_dir = Path::new("tests").join("_cache_out");
     let out_dir = out_dir.to_str().unwrap();
     println!("out_dir: {out_dir}");
     let provider = Provider::DeepInfra;
@@ -105,9 +105,9 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = bin();
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
+    cmd.arg("--release");
     cmd.arg("build");
     cmd.arg("tests/test_openai_compatible.typ");
-    cmd.arg("--release");
     cmd.assert().success();
 
     for file in &files {

@@ -5,6 +5,8 @@ mod slide;
 mod video;
 
 use clap::Parser;
+use clap::ValueEnum;
+use serde::Deserialize;
 use serde_json::json;
 use std::collections::HashMap;
 use std::path::Path;
@@ -12,44 +14,98 @@ use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
 use transformrs::Provider;
 
-#[derive(Parser)]
-#[command(author, version, about = "Text and image to video")]
-struct Arguments {
-    /// Path to the Typst input file.
-    #[arg(long)]
-    input: String,
-
-    /// Verbose output.
-    #[arg(long)]
-    verbose: bool,
-
+#[derive(Clone, Debug, Default, Deserialize)]
+struct Config {
     /// Provider.
     ///
     /// Can be used to pass for example
     /// `--provider=openai-compatible(kokoros.transformrs.org)`.
-    #[arg(long)]
     provider: Option<String>,
 
-    /// Model.
+    /// Text-to-speech model.
     ///
     /// For the OpenAI compatible API from Kokoros, use `tts-1`.
-    #[arg(long)]
     model: Option<String>,
 
-    /// Voice.
+    /// Text-to-speech voice.
     ///
     /// Note that DeepInfra at the time of writing supports more voices that
     /// Kokoros. If Kokoros respond with an empty file (which ffmpeg then
     /// crashes on), try a different voice.
-    #[arg(long, default_value = "am_adam")]
     voice: String,
 
-    /// Speed.
+    /// Text-to-speech voice speed.
     ///
     /// Sets the speed of the voice. This is passed to the text-to-speech
     /// provider.
-    #[arg(long)]
     speed: Option<f32>,
+
+    /// Text-to-speech language code.
+    ///
+    /// This setting is required by Google.
+    language_code: Option<String>,
+}
+
+/// Parse the config from the Typst input file.
+fn parse_config(input: &PathBuf) -> Config {
+    let content = std::fs::read_to_string(input).unwrap();
+    let lines = content.lines();
+    let mut config_lines = Vec::new();
+    let mut in_config_section = false;
+
+    for line in lines {
+        let line = line.trim();
+        if line == "// --- trv config:" {
+            in_config_section = true;
+            continue;
+        } else if in_config_section && line == "// ---" {
+            break;
+        } else if in_config_section {
+            let stripped = line
+                .strip_prefix("// ")
+                .expect("line is not prefixed with //");
+            config_lines.push(stripped);
+        }
+    }
+
+    let config_str = config_lines.join("\n");
+    if config_str.is_empty() {
+        return Config::default();
+    }
+    let config: Config = toml::from_str(&config_str).unwrap();
+    config
+}
+
+#[derive(Clone, Debug, Parser)]
+struct BuildArgs {
+    /// Path to the Typst input file.
+    input: PathBuf,
+}
+
+#[derive(Clone, Debug, Parser)]
+struct WatchArgs {
+    /// Path to the Typst input file.
+    input: PathBuf,
+}
+
+#[derive(Clone, Debug, clap::Subcommand)]
+enum Task {
+    /// Build the video.
+    Build(BuildArgs),
+
+    /// Watch the input file and rebuild the video when it changes.
+    Watch(WatchArgs),
+}
+
+#[derive(Parser)]
+#[command(author, version, about = "Text and image to video")]
+struct Arguments {
+    #[command(subcommand)]
+    task: Task,
+
+    /// Verbose output.
+    #[arg(long)]
+    verbose: bool,
 
     /// Audio format.
     ///
@@ -57,12 +113,6 @@ struct Arguments {
     /// most formats, but can be useful to override the default value.
     #[arg(long)]
     audio_format: Option<String>,
-
-    /// Language code.
-    ///
-    /// This setting is required by Google.
-    #[arg(long)]
-    language_code: Option<String>,
 
     /// Out directory.
     #[arg(long, default_value = "_out")]
@@ -151,7 +201,7 @@ fn include_includes(input_dir: &Path, content: &str) -> String {
 ///
 /// This is necessary because Typst requires the input to be present in the
 /// project directory.
-fn copy_input_with_includes(dir: &str, input: &str) -> PathBuf {
+fn copy_input_with_includes(dir: &str, input: &PathBuf) -> PathBuf {
     let output_path = Path::new(dir).join("input.typ");
     let content = std::fs::read_to_string(input).unwrap();
     let input_dir = Path::new(input).parent().unwrap();
@@ -175,41 +225,49 @@ async fn main() {
     if !path.exists() {
         std::fs::create_dir_all(path).unwrap();
     }
-    let input = copy_input_with_includes(dir, &args.input);
+    let input = match args.task {
+        Task::Build(args) => args.input,
+        Task::Watch(args) => args.input,
+    };
+    let copied_input = copy_input_with_includes(dir, &input);
+    let config = parse_config(&copied_input);
 
-    let provider = args.provider.map(|p| provider_from_str(&p));
+    let provider = config.provider.map(|p| provider_from_str(&p));
     let provider = provider.unwrap_or(Provider::DeepInfra);
     let mut other = HashMap::new();
     if provider != Provider::Google {
         other.insert("seed".to_string(), json!(42));
     }
-    let config = transformrs::text_to_speech::TTSConfig {
-        voice: Some(args.voice.clone()),
+    let tts_config = transformrs::text_to_speech::TTSConfig {
+        voice: Some(config.voice.clone()),
         output_format: args.audio_format.clone(),
-        speed: args.speed,
+        speed: config.speed,
         other: Some(other),
-        language_code: args.language_code.clone(),
+        language_code: config.language_code.clone(),
     };
 
-    let slides = slide::slides(input.to_str().unwrap());
+    let slides = slide::slides(copied_input.to_str().unwrap());
     if slides.is_empty() {
-        panic!("No slides found in input file: {}", args.input);
+        panic!("No slides found in input file: {}", input.display());
     }
-    image::generate_images(&input, dir);
-    let audio_ext = config.output_format.clone().unwrap_or("mp3".to_string());
+    image::generate_images(&copied_input, dir);
+    let audio_ext = tts_config
+        .output_format
+        .clone()
+        .unwrap_or("mp3".to_string());
     audio::generate_audio_files(
         &provider,
         dir,
         &slides,
         args.cache,
-        &config,
-        &args.model,
+        &tts_config,
+        &config.model,
         &audio_ext,
     )
     .await;
     // Using mkv by default because it supports more audio formats.
     let output = "out.mkv";
-    video::generate_video(dir, &slides, args.cache, &config, output, &audio_ext);
+    video::generate_video(dir, &slides, args.cache, &tts_config, output, &audio_ext);
     if args.release {
         video::generate_release_video(dir, output, "release.mp4", &args.audio_codec);
     }
