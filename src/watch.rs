@@ -128,7 +128,9 @@ fn build_index(args: &Arguments, slides: &[Slide], init: bool) {
     let out_dir = &args.out_dir;
     let index = index(args, slides, init);
     let path = Path::new(out_dir).join("index.html");
-    tracing::info!("Writing index.html. It might take the browser a few seconds to reload the page.");
+    tracing::info!("Writing index.html.");
+    tracing::info!("It videos are not updated, make sure to 'Disable cache' in the Network tab of the developer tools.");
+    tracing::info!("It might take the Firefox a few seconds to reload the page. Chrome is much faster.");
     std::fs::write(path, index).unwrap();
 }
 
