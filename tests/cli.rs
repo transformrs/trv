@@ -44,8 +44,8 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.env("DEEPINFRA_KEY", &key);
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--audio-format=mp3");
+    cmd.arg("build");
+    cmd.arg("tests/test_cache.typ");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
@@ -62,8 +62,8 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.env("DEEPINFRA_KEY", key);
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--audio-format=mp3");
+    cmd.arg("build");
+    cmd.arg("tests/test_cache.typ");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.assert()
@@ -105,11 +105,8 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = bin();
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--provider=openai-compatible(kokoros.transformrs.org)");
-    cmd.arg("--model=tts-1");
-    cmd.arg("--voice=bm_lewis");
-    cmd.arg("--audio-format=wav");
+    cmd.arg("build");
+    cmd.arg("tests/test_openai_compatible.typ");
     cmd.arg("--release");
     cmd.assert().success();
 
@@ -149,10 +146,8 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
     cmd.env("GOOGLE_KEY", key);
-    cmd.arg("--provider=google");
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--voice=en-US-Chirp-HD-D");
-    cmd.arg("--language-code=en-US");
+    cmd.arg("build");
+    cmd.arg("tests/test_google.typ");
     if common::is_ci() {
         cmd.arg("--audio-codec=opus");
     } else {
