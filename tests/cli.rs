@@ -44,10 +44,10 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.env("DEEPINFRA_KEY", &key);
-    cmd.arg("build");
-    cmd.arg("tests/test_cache.typ");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
+    cmd.arg("build");
+    cmd.arg("tests/test_cache.typ");
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Slide 1: Generating audio file"))

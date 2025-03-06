@@ -7,6 +7,7 @@
 // With that, trv will automatically use the DeepInfra provider.
 
 // --- trv config:
+// voice = "am_adam"
 // audio_format = "mp3"
 // ---
 
