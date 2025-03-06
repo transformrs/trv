@@ -48,15 +48,15 @@ fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> Stri
         ""
     };
     let release = if init {
-        "".to_string()
+        ""
     } else {
-        format!(indoc::indoc! {"
+        indoc::indoc! {"
             <h2>Release</h2>
             <video controls>
             <source src='release.mp4' type='video/mp4'>
             Your browser does not support the video tag.
             </video>
-        "})
+        "}
     };
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -242,7 +242,7 @@ pub async fn watch(input: PathBuf, args: &Arguments) {
             Ok(_event) => {
                 watch_build(input.clone(), args).await;
                 // Drain the channel to avoid processing old events.
-                while let Ok(_) = rx.try_recv() {}
+                while rx.try_recv().is_ok() {}
             }
             Err(e) => {
                 tracing::debug!("watch error: {:?}", e);
