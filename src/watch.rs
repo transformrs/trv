@@ -110,9 +110,7 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
                     }}
                 }}
 
-                window.addEventListener('load', function() {{
-                    setTimeout(() => {{}}, 200);
-
+                function refresh() {{
                     console.log('Adding random postfix to video sources');
                     // Add random postfix to video sources on initial load
                     document.querySelectorAll('video').forEach(video => {{
@@ -126,6 +124,24 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
                         // Reload the video to apply the new source.
                         video.load();
                     }});
+
+                    console.log('Reloading page');
+                    window.location.reload();
+                }};
+
+                function handleLoad() {{
+                    const storedTimestamp = localStorage.getItem('pageTimestamp');
+                    const currentTimestamp = getCurrentTimestamp();
+                    
+                    if (!storedTimestamp || storedTimestamp !== currentTimestamp) {{
+                        localStorage.setItem('pageTimestamp', currentTimestamp);
+                        setTimeout(() => {{}}, 200);
+                        refresh();
+                    }}
+                }}
+
+                window.addEventListener('load', function() {{
+                    handleLoad();
                 }});
             </script>
         </head>
