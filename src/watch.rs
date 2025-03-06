@@ -78,47 +78,6 @@ fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> Stri
                     max-width: 800px;
                 }}
             </style>
-            <script>
-                function refresh() {{
-                    console.log('Reloading page. This might take a while...');
-
-                    console.log('Adding random postfix to video sources');
-                    document.querySelectorAll('video').forEach(video => {{
-                        const sources = video.querySelectorAll('source');
-                        console.log('Adding random postfix to video');
-                        sources.forEach(source => {{
-                            // Remove any existing timestamp parameter
-                            let src = source.src.split('?')[0];
-                            // Add new random postfix
-                            source.src = src + '?t=' + Math.random().toString(36).substring(2, 15);
-                        }});
-                        // Reload the video to apply the new source.
-                        video.load();
-                    }});
-
-                    window.location.reload();
-                }};
-
-                function handleLoad() {{
-                    const storedTimestamp = localStorage.getItem('pageTimestamp');
-                    const currentTimestamp = document.getElementById('timestamp').innerText;
-                    
-                    if (!storedTimestamp) {{
-                        console.log('No stored timestamp');
-                    }} else if (storedTimestamp !== currentTimestamp) {{
-                        console.log('Timestamp changed');
-                        localStorage.setItem('pageTimestamp', currentTimestamp);
-                        setTimeout(() => {{}}, 200);
-                        refresh();
-                    }} else {{
-                        console.log('No timestamp change');
-                    }}
-                }}
-
-                window.addEventListener('load', function() {{
-                    handleLoad();
-                }});
-            </script>
         </head>
         <body>
             {}
@@ -129,7 +88,7 @@ fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> Stri
         </body>
         </html>
         "},
-        waiting_text, core, release, timestamp
+        waiting_text, core, timestamp, timestamp
     )
 }
 
@@ -205,7 +164,7 @@ fn spawn_server(args: &Arguments) {
     tracing::info!("Starting server at http://{}", addr);
     let options = live_server::Options {
         // In Chrome, hard reloads are required to see video previews.
-        hard_reload: false,
+        hard_reload: true,
         ..Default::default()
     };
 
