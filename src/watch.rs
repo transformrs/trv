@@ -32,6 +32,11 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
         .map(|slide| core_html(out_dir, slide))
         .collect::<Vec<_>>()
         .join("\n");
+    let waiting_text = if init {
+        "Waiting for first build... Page will update when done."
+    } else {
+        ""
+    };
     let release = if init {
         "".to_string()
     } else {
@@ -61,10 +66,12 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
         <body>
             {}
             {}
+            {}
 
         </body>
         </html>
         "},
+        waiting_text,
         core,
         release
     )
