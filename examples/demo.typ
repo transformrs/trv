@@ -79,13 +79,6 @@
       #import "@preview/polylux:0.4.0": *
       #set page(paper: "presentation-16-9")
 
-      // --- trv config:
-      // provider = "openai-compatible(kokoros.transformrs.org)"
-      // model = "tts-1"
-      // voice = "af_sky"
-      // audio_format = "wav"
-      // ---
-
       #slide[
         Hello
 
@@ -107,7 +100,7 @@
 ]
 
 #slide[
-    #set page(margin: 3em)
+    #set page(margin: 9em)
     #set text(size: 24pt)
     ```bash
     $ trv build presentation.typ
