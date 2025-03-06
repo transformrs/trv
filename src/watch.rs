@@ -47,17 +47,6 @@ fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> Stri
     } else {
         ""
     };
-    let release = if init {
-        ""
-    } else {
-        indoc::indoc! {"
-            <h2>Release</h2>
-            <video controls>
-            <source src='release.mp4' type='video/mp4'>
-            Your browser does not support the video tag.
-            </video>
-        "}
-    };
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
@@ -82,13 +71,12 @@ fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> Stri
         <body>
             {}
             {}
-            {}
 
             <div id='timestamp' style='display: none;'>{}</div>
         </body>
         </html>
         "},
-        waiting_text, core, timestamp, timestamp
+        waiting_text, core, timestamp
     )
 }
 
