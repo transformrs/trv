@@ -5,7 +5,6 @@ mod slide;
 mod video;
 
 use clap::Parser;
-use clap::ValueEnum;
 use serde::Deserialize;
 use serde_json::json;
 use std::collections::HashMap;
@@ -20,30 +19,36 @@ struct Config {
     ///
     /// Can be used to pass for example
     /// `--provider=openai-compatible(kokoros.transformrs.org)`.
-    provider: Option<String>,
+    pub provider: Option<String>,
 
     /// Text-to-speech model.
     ///
     /// For the OpenAI compatible API from Kokoros, use `tts-1`.
-    model: Option<String>,
+    pub model: Option<String>,
 
     /// Text-to-speech voice.
     ///
     /// Note that DeepInfra at the time of writing supports more voices that
     /// Kokoros. If Kokoros respond with an empty file (which ffmpeg then
     /// crashes on), try a different voice.
-    voice: String,
+    pub voice: String,
+
+    /// Audio format.
+    ///
+    /// This setting usually should not be necessary since ffmpeg can handle
+    /// most formats, but can be useful to override the default value.
+    pub audio_format: Option<String>,
 
     /// Text-to-speech voice speed.
     ///
     /// Sets the speed of the voice. This is passed to the text-to-speech
     /// provider.
-    speed: Option<f32>,
+    pub speed: Option<f32>,
 
     /// Text-to-speech language code.
     ///
     /// This setting is required by Google.
-    language_code: Option<String>,
+    pub language_code: Option<String>,
 }
 
 /// Parse the config from the Typst input file.
@@ -69,11 +74,18 @@ fn parse_config(input: &PathBuf) -> Config {
     }
 
     let config_str = config_lines.join("\n");
+    println!("config_str: {config_str}");
     if config_str.is_empty() {
         return Config::default();
     }
     let config: Config = toml::from_str(&config_str).unwrap();
     config
+}
+
+#[test]
+fn test_parse_config() {
+    let config = parse_config(&PathBuf::from("tests/test_openai_compatible.typ"));
+    assert_eq!(config.audio_format, Some("wav".to_string()));
 }
 
 #[derive(Clone, Debug, Parser)]
@@ -106,13 +118,6 @@ struct Arguments {
     /// Verbose output.
     #[arg(long)]
     verbose: bool,
-
-    /// Audio format.
-    ///
-    /// This setting usually should not be necessary since ffmpeg can handle
-    /// most formats, but can be useful to override the default value.
-    #[arg(long)]
-    audio_format: Option<String>,
 
     /// Out directory.
     #[arg(long, default_value = "_out")]
@@ -240,7 +245,7 @@ async fn main() {
     }
     let tts_config = transformrs::text_to_speech::TTSConfig {
         voice: Some(config.voice.clone()),
-        output_format: args.audio_format.clone(),
+        output_format: config.audio_format.clone(),
         speed: config.speed,
         other: Some(other),
         language_code: config.language_code.clone(),
