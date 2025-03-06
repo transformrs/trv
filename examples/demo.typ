@@ -5,6 +5,12 @@
 #set text(fill: white)
 #set text(size: 30pt)
 
+// --- trv config:
+// provider = "google"
+// voice = "en-US-Chirp3-HD-Orus"
+// language_code = "en-US"
+// ---
+
 #slide[
     #set text(size: 35pt)
     #align(center)[🔈]

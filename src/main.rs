@@ -74,7 +74,6 @@ fn parse_config(input: &PathBuf) -> Config {
     }
 
     let config_str = config_lines.join("\n");
-    println!("config_str: {config_str}");
     if config_str.is_empty() {
         return Config::default();
     }
@@ -188,7 +187,7 @@ fn include_includes(input_dir: &Path, content: &str) -> String {
         if line.starts_with("#include") {
             let include = line.split_whitespace().nth(1).unwrap().trim_matches('"');
             let include_path = input_dir.join(include);
-            tracing::info!("Including file: {}", include_path.display());
+            tracing::debug!("Including file: {}", include_path.display());
             let content = std::fs::read_to_string(include_path).unwrap();
             for line in content.lines() {
                 output.push_str(line);
