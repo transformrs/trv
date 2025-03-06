@@ -127,7 +127,7 @@ pub(crate) struct Arguments {
 
     /// Enable caching.
     #[arg(long, default_value = "true")]
-    cache: bool,
+    cache: Option<bool>,
 
     /// Release.
     ///
@@ -246,11 +246,12 @@ pub(crate) async fn build(input: PathBuf, args: &Arguments) -> Vec<Slide> {
         .output_format
         .clone()
         .unwrap_or("mp3".to_string());
+    let cache = args.cache.unwrap();
     audio::generate_audio_files(
         &provider,
         out_dir,
         &slides,
-        args.cache,
+        cache,
         &tts_config,
         &config.model,
         &audio_ext,
@@ -261,7 +262,7 @@ pub(crate) async fn build(input: PathBuf, args: &Arguments) -> Vec<Slide> {
     video::generate_video(
         out_dir,
         &slides,
-        args.cache,
+        cache,
         &tts_config,
         output,
         &audio_ext,

@@ -42,7 +42,7 @@ pub fn video_dir_name() -> &'static str {
 
 pub fn video_path(dir: &str, slide: &Slide) -> PathBuf {
     let idx = slide.idx;
-    // Using mkv by default because it supports more audio formats.
-    let filename = format!("{idx}.mkv");
+    // Using mp4 by default because it is widely supported in browsers.
+    let filename = format!("{idx}.mp4");
     Path::new(dir).join(video_dir_name()).join(filename)
 }

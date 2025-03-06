@@ -10,35 +10,69 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc;
 
-fn index(args: &Arguments, slides: &[Slide]) -> String {
+fn core_html(out_dir: &str, slide: &Slide) -> String {
+    let video_path = crate::path::video_path(out_dir, slide);
+    let relative_path = video_path.strip_prefix(out_dir).unwrap().to_str().unwrap();
+    format!(indoc::indoc! {"
+        <h2>Slide {}</h2>
+
+        <video controls>
+          <source src='{}' type='video/mp4'>
+          Your browser does not support the video tag.
+        </video>
+        "},
+        slide.idx, relative_path
+    )
+}
+
+fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
     let out_dir = &args.out_dir;
     let core = slides
         .iter()
-        .map(|slide| {
-            let video_path = crate::path::video_path(out_dir, slide);
-            let relative_path = video_path.strip_prefix(out_dir).unwrap().to_str().unwrap();
-            format!("<h2>Slide {}</h2><a href=\"{}\">{}</a>", slide.idx, relative_path, relative_path)
-        })
+        .map(|slide| core_html(out_dir, slide))
         .collect::<Vec<_>>()
         .join("\n");
+    let release = if init {
+        "".to_string()
+    } else {
+        format!(indoc::indoc! {"
+            <h2>Release</h2>
+            <video controls>
+            <source src='release.mp4' type='video/mp4'>
+            Your browser does not support the video tag.
+            </video>
+        "})
+    };
+
     format!(
         indoc::indoc! {"<!DOCTYPE html>
         <html>
         <head>
             <title>trv</title>
+            <style>
+                body {{
+                    text-align: center;
+                }}
+                video {{
+                    max-width: 800px;
+                }}
+            </style>
         </head>
         <body>
             {}
+            {}
+
         </body>
         </html>
         "},
-        core
+        core,
+        release
     )
 }
 
-fn build_index(args: &Arguments, slides: &[Slide]) {
+fn build_index(args: &Arguments, slides: &[Slide], init: bool) {
     let out_dir = &args.out_dir;
-    let index = index(args, slides);
+    let index = index(args, slides, init);
     let path = Path::new(out_dir).join("index.html");
     tracing::info!("Writing index.html");
     std::fs::write(path, index).unwrap();
@@ -46,7 +80,7 @@ fn build_index(args: &Arguments, slides: &[Slide]) {
 
 async fn watch_build(input: PathBuf, args: &Arguments) {
     let slides = build(input.clone(), args).await;
-    build_index(args, &slides);
+    build_index(args, &slides, false);
 }
 
 fn spawn_server(args: &Arguments) {
@@ -75,7 +109,7 @@ pub async fn watch(input: PathBuf, args: &Arguments) {
         .expect("Failed to watch");
 
     let slides = [];
-    build_index(args, &slides);
+    build_index(args, &slides, true);
     spawn_server(args);
     watch_build(input.clone(), args).await;
 
