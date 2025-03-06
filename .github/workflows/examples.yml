@@ -45,17 +45,17 @@ jobs:
             convert -size 500x500 xc:none -fill white -draw "polygon 150,100 150,400 400,250" play_button.png
 
             ./examples/demo.sh
-            mv _out/release.mp4 _public/demo.mp4
+            mv _out/out.mp4 _public/demo.mp4
             convert _out/image/1.png play_button.png -gravity center -composite tmp.png
             mv tmp.png _public/demo.png
 
             ./examples/google.sh
-            mv _out/release.mp4 _public/google.mp4
+            mv _out/out.mp4 _public/google.mp4
             convert _out/image/1.png play_button.png -gravity center -composite tmp.png
             mv tmp.png _public/google.png
 
             ./examples/first.sh
-            mv _out/release.mp4 _public/first.mp4
+            mv _out/out.mp4 _public/first.mp4
             convert _out/image/1.png play_button.png -gravity center -composite tmp.png
             mv tmp.png _public/first.png
 
