@@ -32,7 +32,7 @@ To create a video, create a Typst presentation with speaker notes (we show only 
 Next, run the following command:
 
 ```raw
-$ trv --release build examples/first.typ
+$ trv build examples/first.typ
 ```
 
 This generates the following video:
@@ -93,7 +93,7 @@ Google has some high-quality voices available via their API:
 ```raw
 $ export GOOGLE_KEY="<YOUR KEY>"
 
-$ trv --release build examples/google.typ
+$ trv build examples/google.typ
 ```
 
 [![Google demo video](https://transformrs.github.io/trv/google.png)](https://transformrs.github.io/trv/google.mp4)
@@ -121,7 +121,7 @@ So it's probably easiest to use DeepInfra:
 ```raw
 $ export DEEPINFRA_KEY="<YOUR KEY>"
 
-$ trv --release build presentation.typ
+$ trv build presentation.typ
 ```
 
 Do note that Zonos is way more unstable than Kokoros at the time of writing.

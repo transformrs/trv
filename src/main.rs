@@ -257,8 +257,7 @@ pub(crate) async fn build(input: PathBuf, args: &Arguments, release: bool) -> Ve
     let output = "out.mp4";
     video::create_video_clips(out_dir, &slides, cache, &tts_config, &audio_ext);
     if release {
-        video::combine_video(out_dir, &slides, output);
-        video::generate_release_video(out_dir, output, "release.mp4", &args.audio_codec);
+        video::combine_video(out_dir, &slides, output, &args.audio_codec);
     }
     slides
 }
