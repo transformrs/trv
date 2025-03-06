@@ -15,7 +15,7 @@
     #set text(fill: white)
     #v(8em)
     #set text(size: 35pt)
-    #align(center)[*Text to video 10*]
+    #align(center)[*Text to video 19*]
 
     #toolbox.pdfpc.speaker-note("
       What if you could easily generate videos from text?

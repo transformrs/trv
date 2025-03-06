@@ -70,48 +70,9 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
                 }}
             </style>
             <script>
-                function getCurrentTimestamp() {{
-                    const timestampElement = document.getElementById('timestamp');
-                    return timestampElement ? timestampElement.innerText : null;
-                }}
-
-                function storeInitialTimestamp() {{
-                    const currentTimestamp = getCurrentTimestamp();
-                    if (currentTimestamp) {{
-                        localStorage.setItem('pageTimestamp', currentTimestamp);
-                    }}
-                }}
-
-                function checkTimestampAndReload() {{
-                    const storedTimestamp = localStorage.getItem('pageTimestamp');
-                    const currentTimestamp = getCurrentTimestamp();
-
-                    if (storedTimestamp && currentTimestamp && storedTimestamp !== currentTimestamp) {{
-                        setTimeout(() => {{}}, 800);
-                        localStorage.setItem('pageTimestamp', currentTimestamp);
-
-                        console.log('Reloading page');
-
-                        // Force reload all videos by appending timestamp to source URLs
-                        document.querySelectorAll('video').forEach(video => {{
-                            const sources = video.querySelectorAll('source');
-                            sources.forEach(source => {{
-                                // Remove any existing timestamp parameter
-                                let src = source.src.split('?')[0];
-                                // Add new timestamp parameter
-                                source.src = src + '?t=' + new Date().getTime();
-                            }});
-                            // Reload the video to apply the new sources
-                            video.load();
-                        }});
-
-                        // Pause to let the live-server reload the files.
-                        window.location.reload();
-                    }}
-                }}
-
                 function refresh() {{
                     console.log('Adding random postfix to video sources');
+
                     // Add random postfix to video sources on initial load
                     document.querySelectorAll('video').forEach(video => {{
                         const sources = video.querySelectorAll('source');
@@ -131,12 +92,17 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
 
                 function handleLoad() {{
                     const storedTimestamp = localStorage.getItem('pageTimestamp');
-                    const currentTimestamp = getCurrentTimestamp();
+                    const currentTimestamp = document.getElementById('timestamp').innerText;
                     
-                    if (!storedTimestamp || storedTimestamp !== currentTimestamp) {{
+                    if (!storedTimestamp) {{
+                        console.log('No stored timestamp');
+                    }} else if (storedTimestamp !== currentTimestamp) {{
+                        console.log('Timestamp changed');
                         localStorage.setItem('pageTimestamp', currentTimestamp);
                         setTimeout(() => {{}}, 200);
                         refresh();
+                    }} else {{
+                        console.log('No timestamp change');
                     }}
                 }}
 
