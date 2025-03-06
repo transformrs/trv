@@ -29,11 +29,11 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
         "audio/1.mp3",
         "audio/2.mp3",
         "audio/1.audio.cache_key",
-        "video/1.mkv",
-        "video/2.mkv",
+        "video/1.mp4",
+        "video/2.mp4",
         "video/1.video.cache_key",
         "concat_list.txt",
-        "out.mkv",
+        "out.mp4",
     ];
     for file in &files {
         let path = Path::new(out_dir).join(file);
@@ -90,9 +90,9 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
         "audio/1.wav",
         "audio/2.wav",
         "audio/1.audio.cache_key",
-        "video/1.mkv",
+        "video/1.mp4",
         "concat_list.txt",
-        "out.mkv",
+        "out.mp4",
         "release.mp4",
     ];
     for file in &files {
@@ -130,9 +130,9 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
         "audio/1.mp3",
         "audio/2.mp3",
         "audio/1.audio.cache_key",
-        "video/1.mkv",
+        "video/1.mp4",
         "concat_list.txt",
-        "out.mkv",
+        "out.mp4",
         "release.mp4",
     ];
     for file in &files {

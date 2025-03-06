@@ -19,6 +19,9 @@ serde_json = "1.0.138"
 serde = { version = "1", features = ["derive"] }
 sha2 = "0.10.8"
 toml = "0.8"
+live-server = "0.10.0"
+notify = "8.0"
+indoc = "2.0.6"
 
 [dev-dependencies]
 assert_cmd = "2"
