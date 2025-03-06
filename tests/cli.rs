@@ -62,10 +62,10 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.env("DEEPINFRA_KEY", key);
-    cmd.arg("build");
-    cmd.arg("tests/test_cache.typ");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
+    cmd.arg("build");
+    cmd.arg("tests/test_cache.typ");
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Slide 1: Generating audio file"))
@@ -143,17 +143,17 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut cmd = bin();
+    cmd.env("GOOGLE_KEY", key);
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
-    cmd.env("GOOGLE_KEY", key);
-    cmd.arg("build");
-    cmd.arg("tests/test_google.typ");
+    cmd.arg("--release");
     if common::is_ci() {
         cmd.arg("--audio-codec=opus");
     } else {
         cmd.arg("--audio-codec=aac_at");
     }
-    cmd.arg("--release");
+    cmd.arg("build");
+    cmd.arg("tests/test_google.typ");
     cmd.assert().success();
 
     for file in files {
