@@ -3,7 +3,9 @@ mod image;
 mod path;
 mod slide;
 mod video;
+mod watch;
 
+use crate::slide::Slide;
 use clap::Parser;
 use serde::Deserialize;
 use serde_json::json;
@@ -12,6 +14,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
 use transformrs::Provider;
+use watch::watch;
 
 #[derive(Clone, Debug, Default, Deserialize)]
 struct Config {
@@ -110,7 +113,7 @@ enum Task {
 
 #[derive(Parser)]
 #[command(author, version, about = "Text and image to video")]
-struct Arguments {
+pub(crate) struct Arguments {
     #[command(subcommand)]
     task: Task,
 
@@ -215,25 +218,9 @@ fn copy_input_with_includes(dir: &str, input: &PathBuf) -> PathBuf {
     output_path
 }
 
-#[tokio::main]
-async fn main() {
-    let args = Arguments::parse();
-    if args.verbose {
-        init_subscriber(tracing::Level::DEBUG).unwrap();
-    } else {
-        init_subscriber(tracing::Level::INFO).unwrap();
-    }
-
-    let dir = &args.out_dir;
-    let path = Path::new(dir);
-    if !path.exists() {
-        std::fs::create_dir_all(path).unwrap();
-    }
-    let input = match args.task {
-        Task::Build(args) => args.input,
-        Task::Watch(args) => args.input,
-    };
-    let copied_input = copy_input_with_includes(dir, &input);
+pub(crate) async fn build(input: PathBuf, args: &Arguments) -> Vec<Slide> {
+    let out_dir = &args.out_dir;
+    let copied_input = copy_input_with_includes(out_dir, &input);
     let config = parse_config(&copied_input);
 
     let provider = config.provider.map(|p| provider_from_str(&p));
@@ -254,14 +241,14 @@ async fn main() {
     if slides.is_empty() {
         panic!("No slides found in input file: {}", input.display());
     }
-    image::generate_images(&copied_input, dir);
+    image::generate_images(&copied_input, out_dir);
     let audio_ext = tts_config
         .output_format
         .clone()
         .unwrap_or("mp3".to_string());
     audio::generate_audio_files(
         &provider,
-        dir,
+        out_dir,
         &slides,
         args.cache,
         &tts_config,
@@ -271,8 +258,39 @@ async fn main() {
     .await;
     // Using mkv by default because it supports more audio formats.
     let output = "out.mkv";
-    video::generate_video(dir, &slides, args.cache, &tts_config, output, &audio_ext);
+    video::generate_video(
+        out_dir,
+        &slides,
+        args.cache,
+        &tts_config,
+        output,
+        &audio_ext,
+    );
     if args.release {
-        video::generate_release_video(dir, output, "release.mp4", &args.audio_codec);
+        video::generate_release_video(out_dir, output, "release.mp4", &args.audio_codec);
     }
+    slides
+}
+
+#[tokio::main]
+async fn main() {
+    let args = Arguments::parse();
+    if args.verbose {
+        init_subscriber(tracing::Level::DEBUG).unwrap();
+    } else {
+        init_subscriber(tracing::Level::INFO).unwrap();
+    }
+
+    let dir = &args.out_dir;
+    let path = Path::new(dir);
+    if !path.exists() {
+        std::fs::create_dir_all(path).unwrap();
+    }
+
+    match args.task {
+        Task::Build(ref build_args) => {
+            let _ = build(build_args.input.clone(), &args).await;
+        }
+        Task::Watch(ref watch_args) => watch(watch_args.input.clone(), &args).await,
+    };
 }
