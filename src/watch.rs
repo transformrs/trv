@@ -13,7 +13,8 @@ use std::sync::mpsc;
 fn core_html(out_dir: &str, slide: &Slide) -> String {
     let video_path = crate::path::video_path(out_dir, slide);
     let relative_path = video_path.strip_prefix(out_dir).unwrap().to_str().unwrap();
-    format!(indoc::indoc! {"
+    format!(
+        indoc::indoc! {"
         <h2>Slide {}</h2>
 
         <video controls>
@@ -48,12 +49,18 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
             </video>
         "})
     };
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
 
     format!(
         indoc::indoc! {"<!DOCTYPE html>
-        <html>
+        <html lang='en'>
         <head>
             <title>trv</title>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
             <style>
                 body {{
                     text-align: center;
@@ -62,18 +69,76 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
                     max-width: 800px;
                 }}
             </style>
+            <script>
+                function getCurrentTimestamp() {{
+                    const timestampElement = document.getElementById('timestamp');
+                    return timestampElement ? timestampElement.innerText : null;
+                }}
+
+                function storeInitialTimestamp() {{
+                    const currentTimestamp = getCurrentTimestamp();
+                    if (currentTimestamp) {{
+                        localStorage.setItem('pageTimestamp', currentTimestamp);
+                    }}
+                }}
+
+                function checkTimestampAndReload() {{
+                    const storedTimestamp = localStorage.getItem('pageTimestamp');
+                    const currentTimestamp = getCurrentTimestamp();
+
+                    if (storedTimestamp && currentTimestamp && storedTimestamp !== currentTimestamp) {{
+                        setTimeout(() => {{}}, 800);
+                        localStorage.setItem('pageTimestamp', currentTimestamp);
+
+                        console.log('Reloading page');
+
+                        // Force reload all videos by appending timestamp to source URLs
+                        document.querySelectorAll('video').forEach(video => {{
+                            const sources = video.querySelectorAll('source');
+                            sources.forEach(source => {{
+                                // Remove any existing timestamp parameter
+                                let src = source.src.split('?')[0];
+                                // Add new timestamp parameter
+                                source.src = src + '?t=' + new Date().getTime();
+                            }});
+                            // Reload the video to apply the new sources
+                            video.load();
+                        }});
+
+                        // Pause to let the live-server reload the files.
+                        window.location.reload();
+                    }}
+                }}
+
+                window.addEventListener('load', function() {{
+                    setTimeout(() => {{}}, 200);
+
+                    console.log('Adding random postfix to video sources');
+                    // Add random postfix to video sources on initial load
+                    document.querySelectorAll('video').forEach(video => {{
+                        const sources = video.querySelectorAll('source');
+                        sources.forEach(source => {{
+                            // Remove any existing timestamp parameter
+                            let src = source.src.split('?')[0];
+                            // Add new random postfix
+                            source.src = src + '?t=' + Math.random().toString(36).substring(2, 15);
+                        }});
+                        // Reload the video to apply the new source.
+                        video.load();
+                    }});
+                }});
+            </script>
         </head>
         <body>
             {}
             {}
             {}
 
+            <div id='timestamp' style='display: none;'>{}</div>
         </body>
         </html>
         "},
-        waiting_text,
-        core,
-        release
+        waiting_text, core, release, timestamp
     )
 }
 
@@ -96,7 +161,11 @@ fn spawn_server(args: &Arguments) {
 
     let addr = "127.0.0.1:8080";
     tracing::info!("Starting server at http://{}", addr);
-    let options = live_server::Options::default();
+    let options = live_server::Options {
+        // In Chrome, hard reloads are required to see video previews.
+        hard_reload: true,
+        ..Default::default()
+    };
 
     tokio::spawn(async move {
         listen(addr, root)
