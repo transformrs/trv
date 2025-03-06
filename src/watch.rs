@@ -120,10 +120,12 @@ pub async fn watch(input: PathBuf, args: &Arguments) {
     spawn_server(args);
     watch_build(input.clone(), args).await;
 
-    for result in rx {
+    for result in &rx {
         match result {
             Ok(_event) => {
                 watch_build(input.clone(), args).await;
+                // Drain the channel to avoid processing old events.
+                while let Ok(_) = rx.try_recv() {}
             }
             Err(e) => {
                 tracing::debug!("watch error: {:?}", e);

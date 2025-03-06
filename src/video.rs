@@ -83,6 +83,11 @@ fn write_concat_list(dir: &str, path: &str, slides: &Vec<Slide>) {
     std::fs::write(path, concat_list).expect("couldn't write concat list");
 }
 
+// 1920 is the height of a HD YouTube Short.
+// It should be a good height for landscape videos too.
+// Since the video consists of images, data-wise it should be not a problem to go for a higher resolution.
+const HEIGHT: i32 = 1920;
+
 fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, ext: &str) {
     tracing::info!("Slide {}: Generating video file...", slide.idx);
     let input_audio = crate::path::audio_path(dir, slide, ext);
@@ -111,7 +116,7 @@ fn create_video_clip(dir: &str, slide: &Slide, cache: bool, config: &TTSConfig, 
         .arg("-preset")
         .arg("fast")
         .arg("-vf")
-        .arg(format!("scale=-1:1920,format=yuv420p"))
+        .arg(format!("scale=-1:{HEIGHT},format=yuv420p"))
         .arg("-pix_fmt")
         .arg("yuv420p")
         .arg("-c:a")
@@ -197,10 +202,6 @@ pub fn generate_release_video(dir: &str, input: &str, output: &str, audio_codec:
     let output_path = Path::new(dir).join(output);
     let output_path = output_path.to_str().unwrap();
     let mut cmd = std::process::Command::new("ffmpeg");
-    // 1920 is the height of a HD YouTube Short.
-    // It should be a good height for landscape videos too.
-    // Since the video consists of images, data-wise it should be not a problem to go for a higher resolution.
-    let height = 1920;
     let output = cmd
         .arg("-y")
         .arg("-i")
@@ -212,7 +213,7 @@ pub fn generate_release_video(dir: &str, input: &str, output: &str, audio_codec:
         .arg("-preset")
         .arg("fast")
         .arg("-vf")
-        .arg(format!("scale=-1:{height},format=yuv420p"))
+        .arg(format!("scale=-1:{HEIGHT},format=yuv420p"))
         .arg("-c:a")
         .arg(audio_codec)
         .arg("-strict")

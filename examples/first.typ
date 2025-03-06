@@ -19,7 +19,6 @@
 
     #toolbox.pdfpc.speaker-note("
       What if you could easily generate videos from text?
-      foo
     ")
 ]
 
@@ -33,6 +32,20 @@
       *Step 2:* ...?
       
       *Step 3:* Profit!
+    ]
+
+    #toolbox.pdfpc.speaker-note("
+      That would be pretty cool.
+      Here is a plan to make it happen.
+    ")
+]
+
+#slide[
+    #set page(fill: black, margin: 3em)
+    #set text(fill: white)
+    #set text(size: 45pt)
+    #align(left)[
+      third slide
     ]
 
     #toolbox.pdfpc.speaker-note("
