@@ -257,8 +257,7 @@ pub(crate) async fn build(input: PathBuf, args: &Arguments) -> Vec<Slide> {
         &audio_ext,
     )
     .await;
-    // Using mkv by default because it supports more audio formats.
-    let output = "out.mkv";
+    let output = "out.mp4";
     video::generate_video(out_dir, &slides, cache, &tts_config, output, &audio_ext);
     if args.release {
         video::generate_release_video(out_dir, output, "release.mp4", &args.audio_codec);
