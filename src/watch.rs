@@ -6,13 +6,22 @@ use notify::recommended_watcher;
 use notify::Event;
 use notify::Result;
 use notify::Watcher;
+use std::ffi::OsStr;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc;
 
-fn core_html(out_dir: &str, slide: &Slide) -> String {
+fn add_timestamp(filename: &OsStr, timestamp: u64) -> String {
+    let path = Path::new(filename);
+    let stem = path.file_stem().unwrap().to_str().unwrap();
+    let extension = path.extension().unwrap_or_default().to_str().unwrap_or("");
+    format!("{}_{}.{}", stem, timestamp, extension)
+}
+
+fn core_html(out_dir: &str, slide: &Slide, timestamp: u64) -> String {
     let video_path = crate::path::video_path(out_dir, slide);
-    let relative_path = video_path.strip_prefix(out_dir).unwrap().to_str().unwrap();
+    let filename = video_path.file_name().unwrap();
+    let filename = add_timestamp(filename, timestamp);
     format!(
         indoc::indoc! {"
         <h2>Slide {}</h2>
@@ -22,15 +31,15 @@ fn core_html(out_dir: &str, slide: &Slide) -> String {
           Your browser does not support the video tag.
         </video>
         "},
-        slide.idx, relative_path
+        slide.idx, filename
     )
 }
 
-fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
+fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> String {
     let out_dir = &args.out_dir;
     let core = slides
         .iter()
-        .map(|slide| core_html(out_dir, slide))
+        .map(|slide| core_html(out_dir, slide, timestamp))
         .collect::<Vec<_>>()
         .join("\n");
     let waiting_text = if init {
@@ -124,24 +133,73 @@ fn index(args: &Arguments, slides: &[Slide], init: bool) -> String {
     )
 }
 
-fn build_index(args: &Arguments, slides: &[Slide], init: bool) {
+fn public_dir(args: &Arguments) -> PathBuf {
     let out_dir = &args.out_dir;
-    let index = index(args, slides, init);
-    let path = Path::new(out_dir).join("index.html");
+    let public_path = Path::new(out_dir).join("public");
+    public_path
+}
+
+fn build_index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) {
+    let index = index(args, slides, timestamp, init);
+    let path = public_dir(args).join("index.html");
     tracing::info!("Writing index.html.");
-    tracing::info!("It videos are not updated, make sure to 'Disable cache' in the Network tab of the developer tools.");
-    tracing::info!("It might take the Firefox a few seconds to reload the page. Chrome is much faster.");
     std::fs::write(path, index).unwrap();
+}
+
+/// Timestamp in unix seconds.
+///
+/// Used for cache busting.
+fn timestamp() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
+fn move_files_into_public(args: &Arguments, slides: &[Slide]) -> u64 {
+    let public_path = public_dir(args);
+    let out_dir = &args.out_dir;
+
+    let timestamp = timestamp();
+
+    for slide in slides {
+        let video_path = crate::path::video_path(out_dir, slide);
+        let filename = video_path.file_name().unwrap();
+        let filename = add_timestamp(filename, timestamp);
+
+        std::fs::copy(video_path, public_path.join(filename)).unwrap();
+    }
+    timestamp
+}
+
+fn remove_old_files(args: &Arguments, timestamp: u64) {
+    let public_path = public_dir(args);
+    for entry in std::fs::read_dir(public_path).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        if let Some(extension) = path.extension() {
+            if extension == "mp4" {
+                let filename = path.file_name().unwrap().to_str().unwrap();
+                if !filename.contains(&format!("_{}", timestamp)) {
+                    std::fs::remove_file(path).unwrap();
+                }
+            }
+        }
+    }
 }
 
 async fn watch_build(input: PathBuf, args: &Arguments) {
     let slides = build(input.clone(), args).await;
-    build_index(args, &slides, false);
+    let timestamp = move_files_into_public(args, &slides);
+    build_index(args, &slides, timestamp, false);
+    remove_old_files(args, timestamp);
 }
 
 fn spawn_server(args: &Arguments) {
-    let out_dir = &args.out_dir;
-    let root = format!("./{}", out_dir);
+    let root = format!("./{}", public_dir(args).display());
 
     let addr = "127.0.0.1:8080";
     tracing::info!("Starting server at http://{}", addr);
@@ -168,8 +226,14 @@ pub async fn watch(input: PathBuf, args: &Arguments) {
         .watch(&input, notify::RecursiveMode::NonRecursive)
         .expect("Failed to watch");
 
+    let public_path = public_dir(args);
+    if !public_path.exists() {
+        std::fs::create_dir_all(&public_path).expect("Failed to create public directory");
+    }
+
     let slides = [];
-    build_index(args, &slides, true);
+    let timestamp = timestamp();
+    build_index(args, &slides, timestamp, true);
     spawn_server(args);
     watch_build(input.clone(), args).await;
 

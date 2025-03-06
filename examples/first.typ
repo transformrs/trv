@@ -15,11 +15,7 @@
     #set text(fill: white)
     #v(8em)
     #set text(size: 35pt)
-    #align(center)[*Text to video 12*]
-
-    TODO: I just need to copy the videos to another output directory and then
-    give them all a special suffix to work around caching. ffmpeg by default seems to first remove the video
-    and then add a new one. The browsers don't like this.
+    #align(center)[*Text to video 2*]
 
     #toolbox.pdfpc.speaker-note("
       What if you could easily generate videos from text?
