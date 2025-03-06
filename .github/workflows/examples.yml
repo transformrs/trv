@@ -42,9 +42,6 @@ jobs:
 
       - name: Run examples
         run: |
-            # Required by google.sh
-            mkdir _out/
-
             convert -size 500x500 xc:none -fill white -draw "polygon 150,100 150,400 400,250" play_button.png
 
             ./examples/demo.sh

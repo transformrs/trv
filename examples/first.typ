@@ -2,6 +2,14 @@
 
 #set page(paper: "presentation-16-9")
 
+// --- trv config:
+// provider = "openai-compatible(kokoros.transformrs.org)"
+// model = "tts-1"
+// voice = "af_sky"
+// speed = 0.95
+// audio_format = "wav"
+// ---
+
 #slide[
     #set page(fill: black)
     #set text(fill: white)

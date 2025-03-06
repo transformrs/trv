@@ -18,7 +18,7 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
-    let out_dir = Path::new("tests").join("_out");
+    let out_dir = Path::new("tests").join("_cache_out");
     let out_dir = out_dir.to_str().unwrap();
     println!("out_dir: {out_dir}");
     let provider = Provider::DeepInfra;
@@ -44,10 +44,10 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.env("DEEPINFRA_KEY", &key);
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--audio-format=mp3");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
+    cmd.arg("build");
+    cmd.arg("tests/test_cache.typ");
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Slide 1: Generating audio file"))
@@ -62,10 +62,10 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd = bin();
     cmd.env("DEEPINFRA_KEY", key);
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--audio-format=mp3");
     cmd.arg("--verbose");
     cmd.arg(format!("--out-dir={}", out_dir));
+    cmd.arg("build");
+    cmd.arg("tests/test_cache.typ");
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Slide 1: Generating audio file"))
@@ -105,12 +105,9 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = bin();
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--provider=openai-compatible(kokoros.transformrs.org)");
-    cmd.arg("--model=tts-1");
-    cmd.arg("--voice=bm_lewis");
-    cmd.arg("--audio-format=wav");
     cmd.arg("--release");
+    cmd.arg("build");
+    cmd.arg("tests/test_openai_compatible.typ");
     cmd.assert().success();
 
     for file in &files {
@@ -146,19 +143,17 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut cmd = bin();
+    cmd.env("GOOGLE_KEY", key);
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
-    cmd.env("GOOGLE_KEY", key);
-    cmd.arg("--provider=google");
-    cmd.arg("--input=tests/test.typ");
-    cmd.arg("--voice=en-US-Chirp-HD-D");
-    cmd.arg("--language-code=en-US");
+    cmd.arg("--release");
     if common::is_ci() {
         cmd.arg("--audio-codec=opus");
     } else {
         cmd.arg("--audio-codec=aac_at");
     }
-    cmd.arg("--release");
+    cmd.arg("build");
+    cmd.arg("tests/test_google.typ");
     cmd.assert().success();
 
     for file in files {

@@ -9,6 +9,6 @@ keys.env
 **/*.jpg
 **/*.pdf
 _out/
-tests/_out/
+tests/_cache_out/
 tests/_compatible_out/
 tests/_google_out/

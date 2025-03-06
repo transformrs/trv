@@ -1,8 +1,13 @@
 #import "@preview/polylux:0.4.0": *
 
 #set page(paper: "presentation-16-9")
-
 #set text(size: 25pt)
+
+// --- trv config:
+// provider = "google"
+// voice = "en-US-Chirp-HD-D"
+// language_code = "en-US"
+// ---
 
 #slide[
     \
@@ -31,4 +36,3 @@
         ```
     )
 ]
-
