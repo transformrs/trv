@@ -143,13 +143,13 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     cmd.env("GOOGLE_KEY", key);
     cmd.arg(format!("--out-dir={}", out_dir));
     cmd.arg("--verbose");
+    cmd.arg("build");
+    cmd.arg("tests/test_google.typ");
     if common::is_ci() {
         cmd.arg("--audio-codec=opus");
     } else {
         cmd.arg("--audio-codec=aac_at");
     }
-    cmd.arg("build");
-    cmd.arg("tests/test_google.typ");
     cmd.assert().success();
 
     for file in files {
