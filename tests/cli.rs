@@ -182,7 +182,7 @@ fn convert_to_mp3(input: &str, output: &str) {
     }
 }
 
-fn probe_duration(path: &str) -> Result<f64, Box<dyn std::error::Error>> {
+fn probe_duration(path: &str) -> Option<String> {
     let output = std::process::Command::new("ffprobe")
         .arg("-i")
         .arg(path)
@@ -190,18 +190,12 @@ fn probe_duration(path: &str) -> Result<f64, Box<dyn std::error::Error>> {
         .expect("Failed to run ffprobe command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        tracing::error!("Failed to probe duration: {stderr}");
-        std::process::exit(1);
+        println!("Failed to probe duration: {stderr}");
+        return None;
     }
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let duration = stdout.split("Duration: ").nth(1).unwrap().split(",").next().unwrap();
-    match duration.parse::<f64>() {
-        Ok(duration) => Ok(duration),
-        Err(e) => {
-            tracing::error!("Failed to parse duration: {e}");
-            std::process::exit(1);
-        }
-    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let duration = stderr.split("Duration: ").nth(1).unwrap().split(",").next().unwrap();
+    Some(duration.to_string())
 }
 
 #[test]
@@ -226,9 +220,9 @@ fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
     let audio_path = audio_path.to_str().unwrap();
     convert_to_mp3(&video_path, &audio_path);
 
-    let video_duration = probe_duration(&video_path)?;
+    let video_duration = probe_duration(&video_path).unwrap();
     println!("video_duration: {video_duration}");
-    let audio_duration = probe_duration(&audio_path)?;
+    let audio_duration = probe_duration(&audio_path).unwrap();
     println!("audio_duration: {audio_duration}");
     assert_eq!(video_duration, audio_duration);
 

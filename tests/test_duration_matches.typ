@@ -10,50 +10,71 @@
 // ---
 
 #slide[
-    \
-    #align(center)[Code examples or code videos?]
+    first
 
     #toolbox.pdfpc.speaker-note("
-        What if you could show code in a video?
+      OpenAI whisper is a tool that can be used to run speech recognition.
+
+      It's a great tool for generating SRT files.
+      
+      In this video, I'll quickly show you how to use it.
     ")
 ]
 
 #slide[
-    #set text(size: 20pt)
-
-    ```rust
-    #[tokio::main]
-    async fn main() {
-        println!("Hello, world!");
-    }
-    ```
+    second
 
     #toolbox.pdfpc.speaker-note("
-        For example, take this code.
-        With some more text to make the video duration longer.
+      To install OpenAI whisper, there are multiple options.
+
+      OpenAI advices to use pip install, but on MacOS it's probably easier to use Homebrew.
+
+      Note that this installation might take a while.
+
+      In case of problems during installation, see the openai whisper repository on GitHub.
     ")
 ]
 
 #slide[
-    three
+    third
 
     #toolbox.pdfpc.speaker-note("
-        Since the longer the video the higher the chance that the audio and video will be out of sync,
+      Usage should be pretty straightforward.
+
+      Specify the audio file that you want to convert to SRT, and specify the model that you want to use.
+
+      On the first run, the model will be downloaded automatically.
+
+      Here I'm using the turbo model since that is usually the best option.
+
+      If everything goes well, this command will generate a file called audio.srt.
     ")
 ]
 
 #slide[
-    four
+    fourth
 
     #toolbox.pdfpc.speaker-note("
-        To be sure, here is some more audio.
+      The turbo model requires 6 GB of video memory.
+
+      If you want to use less video memory, then use the tiny, base, small, or medium model.
+
+      Whisper offers two model variants: English-specific models and multilingual models.
+
+      If you need only english, then use an english-only model such as small.en.
     ")
 ]
 
 #slide[
-    five
+    fifth
 
     #toolbox.pdfpc.speaker-note("
-        And here is even more audio.
+      Overall, whisper is a great tool for generating SRT files.
+
+      But it's not perfect.
+
+      It's usually a good idea to manually review the generated SRT file.
+      Think of whisper as a starting point.
+      It will have done 95% of the work for you, it's up to you to verify correctness.
     ")
 ]
