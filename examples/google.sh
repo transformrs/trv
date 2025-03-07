@@ -4,4 +4,4 @@
 
 export GOOGLE_KEY=$(cat keys.env | grep GOOGLE_KEY | cut -d '=' -f 2)
 
-trv build examples/google.typ --audio-codec aac_at
+trv build examples/google.typ
