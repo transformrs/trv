@@ -31,6 +31,14 @@ To create a video, create a Typst presentation with speaker notes (we show only 
 
 #set page(paper: "presentation-16-9")
 
+// --- trv config:
+// provider = "openai-compatible(kokoros.transformrs.org)"
+// model = "tts-1"
+// voice = "af_sky"
+// speed = 0.95
+// audio_format = "wav"
+// ---
+
 #slide[
     #set page(fill: black)
     #set text(fill: white)
@@ -92,7 +100,18 @@ Or for a state-of-the-art model with voice cloning capabilities, see the [Zyphra
 
 ## Kokoros
 
-To use Kokoros locally, the easiest way is to use the Docker image.
+Kokoros is available at `kokoros.transformrs.org`, to use that one, set the following in your `trv` config:
+
+```typ
+// --- trv config:
+// provider = "openai-compatible(kokoros.transformrs.org)"
+// model = "tts-1"
+// voice = "af_sky"
+// audio_format = "wav"
+// ---
+```
+
+If you want to use Kokoros locally, the easiest way is to use the Docker image.
 
 ```raw
 $ git clone https://github.com/lucasjinreal/Kokoros.git
