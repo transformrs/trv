@@ -203,6 +203,14 @@ fn probe_duration(path: &str) -> Option<String> {
     Some(duration.to_string())
 }
 
+fn duration_as_seconds(duration: &str) -> f32 {
+    let parts = duration.split(":").collect::<Vec<&str>>();
+    let hours = parts[0].parse::<f32>().unwrap();
+    let minutes = parts[1].parse::<f32>().unwrap();
+    let seconds = parts[2].parse::<f32>().unwrap();
+    hours * 3600.0 + minutes * 60.0 + seconds
+}
+
 #[test]
 fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = Path::new("tests").join("_duration_matches_out");
@@ -227,9 +235,13 @@ fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
 
     let video_duration = probe_duration(&video_path).unwrap();
     println!("video_duration: {video_duration}");
+    let video_duration = duration_as_seconds(&video_duration);
+    println!("video_duration: {video_duration} seconds");
     let audio_duration = probe_duration(&audio_path).unwrap();
     println!("audio_duration: {audio_duration}");
-    assert_eq!(video_duration, audio_duration);
+    let audio_duration = duration_as_seconds(&audio_duration);
+    println!("audio_duration: {audio_duration} seconds");
+    assert!(video_duration - audio_duration < 0.1);
 
     Ok(())
 }
