@@ -159,3 +159,78 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+
+fn convert_to_mp3(input: &str, output: &str) {
+    let output = std::process::Command::new("ffmpeg")
+        .arg("-y")
+        .arg("-i")
+        .arg(input)
+        .arg("-q:a")
+        .arg("0")
+        .arg("-map")
+        .arg("a")
+        .arg(output)
+        .output()
+        .expect("Failed to run ffmpeg command");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        tracing::error!("Failed to convert to mp3: {stderr}");
+        std::process::exit(1);
+    } else {
+        tracing::info!("Converted to mp3");
+    }
+}
+
+fn probe_duration(path: &str) -> Result<f64, Box<dyn std::error::Error>> {
+    let output = std::process::Command::new("ffprobe")
+        .arg("-i")
+        .arg(path)
+        .output()
+        .expect("Failed to run ffprobe command");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        tracing::error!("Failed to probe duration: {stderr}");
+        std::process::exit(1);
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let duration = stdout.split("Duration: ").nth(1).unwrap().split(",").next().unwrap();
+    match duration.parse::<f64>() {
+        Ok(duration) => Ok(duration),
+        Err(e) => {
+            tracing::error!("Failed to parse duration: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
+#[test]
+fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
+    let out_dir = Path::new("tests").join("_duration_matches_out");
+    let out_dir = out_dir.to_str().unwrap();
+    println!("out_dir: {out_dir}");
+    
+    let key = common::load_key(&Provider::Google);
+    let mut cmd = bin();
+    cmd.env("GOOGLE_KEY", key);
+    cmd.arg(format!("--out-dir={}", out_dir));
+    cmd.arg("--verbose");
+    cmd.arg("--cache=false");
+    cmd.arg("build");
+    cmd.arg("tests/test_duration_matches.typ");
+    cmd.assert().success();
+
+    let video_path = Path::new(out_dir).join("out.mp4");
+    let video_path = video_path.to_str().unwrap();
+    let audio_path = Path::new(out_dir).join("out.mp3");
+    let audio_path = audio_path.to_str().unwrap();
+    convert_to_mp3(&video_path, &audio_path);
+
+    let video_duration = probe_duration(&video_path)?;
+    println!("video_duration: {video_duration}");
+    let audio_duration = probe_duration(&audio_path)?;
+    println!("audio_duration: {audio_duration}");
+    assert_eq!(video_duration, audio_duration);
+
+    Ok(())
+}
