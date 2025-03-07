@@ -4,6 +4,22 @@ Transform slides and speaker notes into video.
 
 [![Demo video](https://transformrs.github.io/trv/demo.png)](https://transformrs.github.io/trv/demo.mp4)
 
+## Features
+
+- 🔒 Fully offline generation of audio via the Kokoro text-to-speech model.
+- 🛠️ Version control friendly - store your video source in git.
+- 🚀 Caching of audio files to avoid redundant API calls.
+- 🚀 Caching of video files for quick re-builds.
+- 🚀 A development mode with a built-in web server for fast feedback.
+- 🌐 Support for multiple languages and voices.
+- 🚀 Small file sizes for easy sharing and hosting.
+
+## Installation
+
+```raw
+$ cargo install trv
+```
+
 ## Usage
 
 This tool is designed to work with [Typst](https://github.com/typst/typst) presentations.
@@ -29,7 +45,15 @@ To create a video, create a Typst presentation with speaker notes (we show only 
 ]
 ```
 
-Next, run the following command:
+Next, we can work on the video with the following command:
+
+```raw
+$ trv watch examples/first.typ
+```
+
+This will start a local web server that will automatically update the video as you make changes to the presentation.
+
+Once everything looks good, we can build the final video with the following command:
 
 ```raw
 $ trv build examples/first.typ
@@ -63,10 +87,10 @@ $ trv --input=presentation.typ
 
 
 To create a video without an API key nor an internet connection, you can self-host [Kokoros](https://github.com/lucasjinreal/Kokoros).
-See the [Offline section](#offline) for more information.
+See the [Kokoros section](#kokoros) for more information.
 Or for a state-of-the-art model with voice cloning capabilities, see the [Zyphra Zonos section](#zyphra-zonos).
 
-## Offline
+## Kokoros
 
 To use Kokoros locally, the easiest way is to use the Docker image.
 
@@ -82,13 +106,26 @@ $ docker run -it --rm -p 3000:3000 kokoros openai
 
 Then, you can use the Docker image as the provider:
 
-```raw
-$ trv --input=presentation.typ --provider=openai-compatible(localhost:3000)
+```typ
+#import "@preview/polylux:0.4.0": *
+
+// --- trv config:
+// provider = "openai-compatible(localhost:3000)"
+// model = "tts-1"
+// voice = "af_sky"
+// audio_format = "wav"
+// ---
+
+...
 ```
 
-## Via Google
+```raw
+$ trv build presentation.typ
+```
 
-Google has some high-quality voices available via their API:
+## Google
+
+My favourite text-to-speech engine is the one from Google.
 
 ```raw
 $ export GOOGLE_KEY="<YOUR KEY>"
@@ -97,11 +134,6 @@ $ trv build examples/google.typ
 ```
 
 [![Google demo video](https://transformrs.github.io/trv/google.png)](https://transformrs.github.io/trv/google.mp4)
-
-See the [Google section](#google) for more information about the Google API.
-
-Google, meanwhile, has the best text-to-speech engine that I've found as part of Gemini 2.0 Flash Experimental.
-However, audio output is not yet available via the API.
 
 ## Zyphra Zonos
 
@@ -132,7 +164,7 @@ So in practice, the Kokoro model is probably the better option for now.
 
 To create a portait video, like a YouTube Short, you can set the page to
 
-```typst
+```typ
 #set page(width: 259.2pt, height: 460.8pt)
 ```
 
@@ -141,24 +173,12 @@ This will automatically create slides with 1080 x 1920 resolution since Typst is
 Next, ffmpeg will automatically scale the video to a height of 1920p so in this case the height will not be changed.
 For landscape videos, it might scale the image down to 1920p.
 
-## About Audio
+## Subtitles
 
-Audio is generated using the [transformrs](https://github.com/transformrs/transformrs) crate.
-It supports multiple providers, including DeepInfra, OpenAI, and Google.
+To add subtitles to the video, you can use OpenAI's [`whisper`](https://github.com/openai/whisper):
 
-So `trv` should also work with providers other than DeepInfra.
-However, during testing, I got the best results with Kokoros or DeepInfra for the lowest price.
-
-For example, OpenAI text-to-speech requires any video to contain a "clear disclosure" that the voice they are hearing is AI-generated.
-
-## Installation
-
-```sh
-cargo install trv
+```raw
+$ whisper _out/out.mp4 -f srt --model small --language=en
 ```
 
-Or with [`cargo binstall`](https://github.com/cargo-bins/cargo-binstall):
-
-```sh
-cargo binstall trv
-```
+This will create a `out.srt` file with the subtitles.

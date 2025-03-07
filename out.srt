@@ -1,0 +1,60 @@
+1
+00:00:00,000 --> 00:00:03,280
+This video was created with the Google Text to Speech API.
+
+2
+00:00:03,280 --> 00:00:06,600
+As an example, we can explain the following math problem.
+
+3
+00:00:06,600 --> 00:00:08,680
+Two plus two equals two X.
+
+4
+00:00:08,680 --> 00:00:10,280
+What is X in this equation?
+
+5
+00:00:10,280 --> 00:00:13,000
+To solve it, we can move the two X to the left.
+
+6
+00:00:13,000 --> 00:00:15,560
+Or in other words, we put everything on the left side
+
+7
+00:00:15,560 --> 00:00:17,240
+of the equation on the right side,
+
+8
+00:00:17,240 --> 00:00:18,320
+and everything on the right side
+
+9
+00:00:18,320 --> 00:00:19,620
+of the equation on the left side.
+
+10
+00:00:19,620 --> 00:00:22,220
+Now we move the two to the right.
+
+11
+00:00:22,220 --> 00:00:24,080
+This can be done by dividing both sides
+
+12
+00:00:24,080 --> 00:00:26,200
+of the equation by two.
+
+13
+00:00:26,200 --> 00:00:30,160
+Now we have X is two plus two divided by two.
+
+14
+00:00:30,160 --> 00:00:33,800
+This gives us X is four divided by two.
+
+15
+00:00:33,800 --> 00:00:35,120
+So the answer is two.
+
