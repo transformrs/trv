@@ -67,7 +67,7 @@
       The fourth benefit is that you can create videos in different languages and voices.
       This is useful if you are creating content for a global audience.
 
-      You could even use it to tell jokes, because the text-to-speech engine is unlikely to laugh when telling a joke.
+      You could even use it to tell jokes, because the text-to-speech engine is unlikely to laugh.
     ")
 ]
 
