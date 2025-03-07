@@ -160,7 +160,6 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
 fn convert_to_mp3(input: &str, output: &str) {
     let output = std::process::Command::new("ffmpeg")
         .arg("-y")
@@ -194,7 +193,13 @@ fn probe_duration(path: &str) -> Option<String> {
         return None;
     }
     let stderr = String::from_utf8_lossy(&output.stderr);
-    let duration = stderr.split("Duration: ").nth(1).unwrap().split(",").next().unwrap();
+    let duration = stderr
+        .split("Duration: ")
+        .nth(1)
+        .unwrap()
+        .split(",")
+        .next()
+        .unwrap();
     Some(duration.to_string())
 }
 
@@ -203,7 +208,7 @@ fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = Path::new("tests").join("_duration_matches_out");
     let out_dir = out_dir.to_str().unwrap();
     println!("out_dir: {out_dir}");
-    
+
     let key = common::load_key(&Provider::Google);
     let mut cmd = bin();
     cmd.env("GOOGLE_KEY", key);
