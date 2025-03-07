@@ -175,12 +175,19 @@ pub(crate) fn combine_video(dir: &str, slides: &Vec<Slide>, output: &str, audio_
         .arg("concat")
         .arg("-i")
         .arg(concat_list)
-        .arg("-c")
-        .arg("copy")
+        .arg("-c:v")
+        // Re-encode to ensure video can be trimmed.
+        .arg("libx264")
         .arg("-c:a")
         .arg(audio_codec)
+        // Experimental is required for opus.
         .arg("-strict")
         .arg("experimental")
+        // Aresample in attempt to fix audio sync.
+        .arg("-af")
+        .arg("aresample=async=1")
+        // To avoid pauses at the end of the video.
+        .arg("-shortest")
         .arg(output_path)
         .output()
         .expect("Failed to run ffmpeg command");

@@ -159,3 +159,89 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+fn convert_to_mp3(input: &str, output: &str) {
+    let output = std::process::Command::new("ffmpeg")
+        .arg("-y")
+        .arg("-i")
+        .arg(input)
+        .arg("-q:a")
+        .arg("0")
+        .arg("-map")
+        .arg("a")
+        .arg(output)
+        .output()
+        .expect("Failed to run ffmpeg command");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        tracing::error!("Failed to convert to mp3: {stderr}");
+        std::process::exit(1);
+    } else {
+        tracing::info!("Converted to mp3");
+    }
+}
+
+fn probe_duration(path: &str) -> Option<String> {
+    let output = std::process::Command::new("ffprobe")
+        .arg("-i")
+        .arg(path)
+        .output()
+        .expect("Failed to run ffprobe command");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("Failed to probe duration: {stderr}");
+        return None;
+    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let duration = stderr
+        .split("Duration: ")
+        .nth(1)
+        .unwrap()
+        .split(",")
+        .next()
+        .unwrap();
+    Some(duration.to_string())
+}
+
+fn duration_as_seconds(duration: &str) -> f32 {
+    let parts = duration.split(":").collect::<Vec<&str>>();
+    let hours = parts[0].parse::<f32>().unwrap();
+    let minutes = parts[1].parse::<f32>().unwrap();
+    let seconds = parts[2].parse::<f32>().unwrap();
+    hours * 3600.0 + minutes * 60.0 + seconds
+}
+
+#[test]
+fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
+    let out_dir = Path::new("tests").join("_duration_matches_out");
+    let out_dir = out_dir.to_str().unwrap();
+    println!("out_dir: {out_dir}");
+
+    let key = common::load_key(&Provider::Google);
+    let mut cmd = bin();
+    cmd.env("GOOGLE_KEY", key);
+    cmd.arg(format!("--out-dir={}", out_dir));
+    cmd.arg("--verbose");
+    cmd.arg("--cache=false");
+    cmd.arg("build");
+    cmd.arg("tests/test_duration_matches.typ");
+    cmd.assert().success();
+
+    let video_path = Path::new(out_dir).join("out.mp4");
+    let video_path = video_path.to_str().unwrap();
+    let audio_path = Path::new(out_dir).join("out.mp3");
+    let audio_path = audio_path.to_str().unwrap();
+    convert_to_mp3(&video_path, &audio_path);
+
+    let video_duration = probe_duration(&video_path).unwrap();
+    println!("video_duration: {video_duration}");
+    let video_duration = duration_as_seconds(&video_duration);
+    println!("video_duration: {video_duration} seconds");
+    let audio_duration = probe_duration(&audio_path).unwrap();
+    println!("audio_duration: {audio_duration}");
+    let audio_duration = duration_as_seconds(&audio_duration);
+    println!("audio_duration: {audio_duration} seconds");
+    assert!(video_duration - audio_duration < 0.1);
+
+    Ok(())
+}
