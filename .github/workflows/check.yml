@@ -1,0 +1,82 @@
+name: check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: rustup update stable
+      - run: rustup default stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: 'test'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/typst
+          key: typst
+
+      - uses: FedericoCarboni/setup-ffmpeg@v3
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: typst-cli
+
+      - run: |
+          echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > keys.env
+          echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> keys.env
+          echo "OPENAI_KEY=${{ secrets.OPENAI_KEY }}" >> keys.env
+
+      - run: cargo test --all-features
+
+      - name: Cleanup before Post Run
+        run: rm keys.env
+
+  typos:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: crate-ci/typos@master
+        with:
+          files: '.'
+
+  fmt:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup update stable
+      - run: rustup default stable
+      - run: rustup component add rustfmt
+      - run: cargo fmt --all --check
+
+  clippy:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup update stable
+      - run: rustup default stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: 'clippy'
+      - run: cargo clippy --all --all-features -- -D warnings
