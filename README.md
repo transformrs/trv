@@ -181,7 +181,7 @@ So in practice, the Kokoro model is probably the better option for now.
 
 ## Portrait Video
 
-To create a portait video, like a YouTube Short, you can set the page to
+To create a portrait video, like a YouTube Short, you can set the page to
 
 ```typ
 #set page(width: 259.2pt, height: 460.8pt)
