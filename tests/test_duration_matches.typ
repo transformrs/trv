@@ -27,7 +27,7 @@
     #toolbox.pdfpc.speaker-note("
       To install OpenAI whisper, there are multiple options.
 
-      OpenAI advices to use pip install, but on MacOS it's probably easier to use Homebrew.
+      OpenAI advises to use pip install, but on MacOS it's probably easier to use Homebrew.
 
       Note that this installation might take a while.
 
