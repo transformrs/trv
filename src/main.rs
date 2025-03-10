@@ -117,6 +117,10 @@ pub(crate) struct WatchArgs {
     /// Port to run the server on.
     #[arg(long, default_value = "8080")]
     port: u16,
+
+    /// Command to run before compiling the Typst file.
+    #[arg(long)]
+    pre_typst: Option<String>,
 }
 
 #[derive(Clone, Debug, clap::Subcommand)]
@@ -124,7 +128,7 @@ enum Task {
     /// Build the video.
     Build(BuildArgs),
 
-    /// Watch the input file and rebuild the video when it changes.
+    /// Watch the current directory and rebuild the video on change.
     Watch(WatchArgs),
 }
 

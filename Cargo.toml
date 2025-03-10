@@ -21,7 +21,8 @@ sha2 = "0.10.8"
 toml = "0.8"
 live-server = "0.10.0"
 notify = "8.0"
-indoc = "2.0.6"
+indoc = "2"
+ignore = "0.4"
 
 [dev-dependencies]
 assert_cmd = "2"

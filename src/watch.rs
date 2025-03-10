@@ -2,6 +2,7 @@ use crate::build;
 use crate::slide::Slide;
 use crate::Arguments;
 use crate::WatchArgs;
+use ignore::Walk;
 use live_server::listen;
 use notify::recommended_watcher;
 use notify::Event;
@@ -139,14 +140,47 @@ fn remove_old_files(args: &Arguments, timestamp: u64) {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+/// Status of the command.
+///
+/// This can be used to avoid crashing the watch loop completely. Instead,
+/// report an error and ignore further actions until the loop is called again.
+/// This allows the user to fix the problem and continue without having to
+/// manually restart the `trv watch`.
+enum Status {
+    Success,
+    Failure,
+}
+
+fn run_pre_typst(watch_args: &WatchArgs) -> Status {
+    if let Some(pre_typst) = &watch_args.pre_typst {
+        tracing::info!("Running pre-typst command...");
+        let mut cmd = std::process::Command::new("/usr/bin/env");
+        cmd.arg("bash");
+        cmd.arg("-c");
+        cmd.arg(pre_typst);
+        let output = cmd.output().expect("Failed to run pre-typst command");
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            tracing::error!("pre-typst command failed: {}", stderr.trim());
+            return Status::Failure;
+        }
+    }
+    Status::Success
+}
+
 async fn watch_build(watch_args: &WatchArgs, args: &Arguments) {
     let release = false;
     let input = watch_args.input.clone();
     let audio_codec = None;
-    let slides = build(input.clone(), args, release, audio_codec).await;
-    let timestamp = move_files_into_public(args, &slides);
-    build_index(args, &slides, timestamp, false);
-    remove_old_files(args, timestamp);
+
+    let status = run_pre_typst(watch_args);
+    if status == Status::Success {
+        let slides = build(input.clone(), args, release, audio_codec).await;
+        let timestamp = move_files_into_public(args, &slides);
+        build_index(args, &slides, timestamp, false);
+        remove_old_files(args, timestamp);
+    }
 }
 
 fn spawn_server(watch_args: &WatchArgs, args: &Arguments) {
@@ -172,10 +206,20 @@ fn spawn_server(watch_args: &WatchArgs, args: &Arguments) {
 pub async fn watch(watch_args: &WatchArgs, args: &Arguments) {
     let (tx, rx) = mpsc::channel::<Result<Event>>();
     let mut watcher = recommended_watcher(tx).unwrap();
-    let input = watch_args.input.clone();
-    watcher
-        .watch(&input, notify::RecursiveMode::NonRecursive)
-        .expect("Failed to watch");
+    let mode = notify::RecursiveMode::NonRecursive;
+    // Watch the current directory since that is probably the most intuitive
+    // path to watch. It also would allow watching scripts that are in a
+    // directory that is above the Typst file. For Typst, files have to be in
+    // the same directory, but allowing the current directory gives more
+    // flexibility.
+    //
+    // Flatten ignores the errors (e.g., permission errors).
+    for entry in Walk::new("./").flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            watcher.watch(path, mode).expect("Failed to watch");
+        }
+    }
 
     let public_path = public_dir(args);
     if !public_path.exists() {
