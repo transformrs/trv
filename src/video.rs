@@ -163,6 +163,7 @@ pub(crate) fn create_video_clips(
 }
 
 pub(crate) fn combine_video(dir: &str, slides: &Vec<Slide>, output: &str, audio_codec: &str) {
+    tracing::info!("Combining video clips into one video...");
     let output = Path::new(dir).join(output);
     let output_path = output.to_str().unwrap();
     let concat_list = Path::new(dir).join("concat_list.txt");
