@@ -30,3 +30,11 @@ predicates = "3"
 pretty_assertions = "1"
 tempfile = "3"
 toml = "0.8"
+
+[profile.release]
+# Reduces binary size from 9.9M to 7.5M on MacOS.
+lto = true
+# Reduces binary size by 0.5M on MacOS.
+codegen-units = 1
+# Reduces binary size by 0.5M on MacOS.
+opt-level = "z"
