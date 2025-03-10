@@ -185,40 +185,6 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
-fn include_includes(input_dir: &Path, content: &str) -> String {
-    let mut output = String::new();
-    for line in content.lines() {
-        if line.starts_with("#include") {
-            let include = line.split_whitespace().nth(1).unwrap().trim_matches('"');
-            let include_path = input_dir.join(include);
-            tracing::debug!("Including file: {}", include_path.display());
-            let content = std::fs::read_to_string(include_path).unwrap();
-            for line in content.lines() {
-                output.push_str(line);
-                output.push('\n');
-            }
-        } else {
-            output.push_str(line);
-            output.push('\n');
-        }
-    }
-    output
-}
-
-/// Copy the Typst input file to the output directory.
-///
-/// This is necessary because Typst requires the input to be present in the
-/// project directory.
-fn copy_input_with_includes(dir: &str, input: &PathBuf) -> PathBuf {
-    let output_path = Path::new(dir).join("input.typ");
-    let content = std::fs::read_to_string(input).unwrap();
-    let input_dir = Path::new(input).parent().unwrap();
-    let content = include_includes(input_dir, &content);
-    std::fs::write(&output_path, content).unwrap();
-
-    output_path
-}
-
 pub(crate) async fn build(
     input: PathBuf,
     args: &Arguments,
@@ -226,8 +192,7 @@ pub(crate) async fn build(
     audio_codec: Option<String>,
 ) -> Vec<Slide> {
     let out_dir = &args.out_dir;
-    let copied_input = copy_input_with_includes(out_dir, &input);
-    let config = parse_config(&copied_input);
+    let config = parse_config(&input);
 
     let provider = config.provider.map(|p| provider_from_str(&p));
     let provider = provider.unwrap_or(Provider::DeepInfra);
@@ -243,11 +208,11 @@ pub(crate) async fn build(
         language_code: config.language_code.clone(),
     };
 
-    let slides = slide::slides(copied_input.to_str().unwrap());
+    let slides = slide::slides(input.to_str().unwrap());
     if slides.is_empty() {
         panic!("No slides found in input file: {}", input.display());
     }
-    image::generate_images(&copied_input, out_dir);
+    image::generate_images(&input, out_dir);
     let audio_ext = tts_config
         .output_format
         .clone()

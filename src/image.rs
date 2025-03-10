@@ -12,7 +12,6 @@ pub fn generate_images(input: &PathBuf, dir: &str) {
         .arg("compile")
         .arg("--format=png")
         .arg("--ppi=300")
-        .arg(format!("--root={}", dir))
         .arg(input)
         .arg(format!("{image_dir}/{{p}}.png"))
         .output()
