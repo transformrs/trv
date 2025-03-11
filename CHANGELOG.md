@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-03-11
+
+### Added
+
+- Add a `--pre-typst` flag to run arbitrary commands before Typst ([#30](https://github.com/transformrs/trv/pull/30)).
+
+### Changed
+
+- Show only image and audio (instead of video) during `watch` ([#32](https://github.com/transformrs/trv/pull/32)).
+- Reduce binary size by changing some compiler settings.
+
+### Fixed
+
+- Video order being wrong when having more than 10 slides.
+- `watch` watches full directory instead of just the Typst file ([#30](https://github.com/transformrs/trv/pull/30)).
+- Avoid copying Typst input file to fix includes and images ([#31](https://github.com/transformrs/trv/pull/31)).
+
 ## [0.4.1] - 2025-03-08
 
 ### Fixed

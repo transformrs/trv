@@ -6,13 +6,13 @@ Transform slides and speaker notes into video.
 
 ## Features
 
-- 🔒 Fully offline generation of audio via the Kokoro text-to-speech model.
 - 🛠️ Version control friendly - store your video source in git.
 - 🚀 Caching of audio files to avoid redundant API calls.
 - 🚀 Caching of video files for quick re-builds.
 - 🚀 A development mode with a built-in web server for fast feedback.
 - 🌐 Support for multiple languages and voices.
 - 🚀 Small file sizes for easy sharing and hosting.
+- 🔒 Fully offline generation of audio via the Kokoro text-to-speech model.
 
 ## Installation
 
