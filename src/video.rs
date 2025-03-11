@@ -74,7 +74,8 @@ fn generate_concat_list(dir: &str, slides: &Vec<Slide>) -> String {
         let line = format!("file '{path}'");
         lines.push(line);
     }
-    lines.sort();
+    // Do not sort the lines here or concat will place 10 and 11 before 2!
+    // lines.sort();
     lines.join("\n")
 }
 
