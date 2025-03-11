@@ -186,15 +186,9 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
-pub(crate) fn provider(config: &Config) -> Provider {
-    let provider = config.clone().provider.map(|p| provider_from_str(&p));
-    provider.unwrap_or(Provider::DeepInfra)
-}
-
-pub(crate) fn tts_config(config: &Config) -> TTSConfig {
-    let provider = provider(config);
+fn tts_config(config: &Config, provider: &Provider) -> TTSConfig {
     let mut other = HashMap::new();
-    if provider != Provider::Google {
+    if provider != &Provider::Google {
         other.insert("seed".to_string(), json!(42));
     }
     TTSConfig {
@@ -215,8 +209,9 @@ pub(crate) async fn build(
 ) -> Vec<Slide> {
     let out_dir = &args.out_dir;
 
-    let provider = provider(&config);
-    let tts_config = tts_config(&config);
+    let provider = config.provider.as_ref().map(|p| provider_from_str(p));
+    let provider = provider.unwrap_or(Provider::DeepInfra);
+    let tts_config = tts_config(config, &provider);
 
     let slides = slide::slides(input.to_str().unwrap());
     if slides.is_empty() {

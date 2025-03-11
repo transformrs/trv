@@ -206,7 +206,7 @@ This will create a `out.srt` file with the subtitles.
 
 The videos created by `trv` consist only of static images.
 This might seem limiting, but as long as the content of the video is high, static images should be fine.
-Here are some YouTubers that have hundreds of thousands to millions of views while having only static images:
+Here are some YouTubers that have hundreds of thousands to millions of views with only static images:
 
 - [Perun](https://www.youtube.com/@PerunAU)
 - [The Histocrat](https://www.youtube.com/@TheHistocrat)
