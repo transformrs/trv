@@ -162,10 +162,12 @@ fn remove_old_files(args: &Arguments, timestamp: u64) {
         if !path.is_file() {
             continue;
         }
-        if let Some(_extension) = path.extension() {
-            let filename = path.file_name().unwrap().to_str().unwrap();
-            if !filename.contains(&format!("_{}", timestamp)) {
-                std::fs::remove_file(path).unwrap();
+        if let Some(extension) = path.extension() {
+            if extension != "html" {
+                let filename = path.file_name().unwrap().to_str().unwrap();
+                if !filename.contains(&format!("_{}", timestamp)) {
+                    std::fs::remove_file(path).unwrap();
+                }
             }
         }
     }
