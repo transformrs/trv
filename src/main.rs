@@ -13,11 +13,12 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::subscriber::SetGlobalDefaultError;
+use transformrs::text_to_speech::TTSConfig;
 use transformrs::Provider;
 use watch::watch;
 
 #[derive(Clone, Debug, Default, Deserialize)]
-struct Config {
+pub(crate) struct Config {
     /// Provider.
     ///
     /// Can be used to pass for example
@@ -185,28 +186,37 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
-pub(crate) async fn build(
-    input: PathBuf,
-    args: &Arguments,
-    release: bool,
-    audio_codec: Option<String>,
-) -> Vec<Slide> {
-    let out_dir = &args.out_dir;
-    let config = parse_config(&input);
+pub(crate) fn provider(config: &Config) -> Provider {
+    let provider = config.clone().provider.map(|p| provider_from_str(&p));
+    provider.unwrap_or(Provider::DeepInfra)
+}
 
-    let provider = config.provider.map(|p| provider_from_str(&p));
-    let provider = provider.unwrap_or(Provider::DeepInfra);
+pub(crate) fn tts_config(config: &Config) -> TTSConfig {
+    let provider = provider(config);
     let mut other = HashMap::new();
     if provider != Provider::Google {
         other.insert("seed".to_string(), json!(42));
     }
-    let tts_config = transformrs::text_to_speech::TTSConfig {
+    TTSConfig {
         voice: Some(config.voice.clone()),
         output_format: config.audio_format.clone(),
         speed: config.speed,
         other: Some(other),
         language_code: config.language_code.clone(),
-    };
+    }
+}
+
+pub(crate) async fn build(
+    input: PathBuf,
+    config: &Config,
+    args: &Arguments,
+    release: bool,
+    audio_codec: Option<String>,
+) -> Vec<Slide> {
+    let out_dir = &args.out_dir;
+
+    let provider = provider(&config);
+    let tts_config = tts_config(&config);
 
     let slides = slide::slides(input.to_str().unwrap());
     if slides.is_empty() {
@@ -229,8 +239,8 @@ pub(crate) async fn build(
     )
     .await;
     let output = "out.mp4";
-    video::create_video_clips(out_dir, &slides, cache, &tts_config, &audio_ext);
     if release {
+        video::create_video_clips(out_dir, &slides, cache, &tts_config, &audio_ext);
         let audio_codec = audio_codec.unwrap();
         video::combine_video(out_dir, &slides, output, &audio_codec);
     }
@@ -256,8 +266,19 @@ async fn main() {
         Task::Build(ref build_args) => {
             let release = true;
             let audio_codec = Some(build_args.audio_codec.clone());
-            let _ = build(build_args.input.clone(), &args, release, audio_codec).await;
+            let config = parse_config(&build_args.input);
+            let _ = build(
+                build_args.input.clone(),
+                &config,
+                &args,
+                release,
+                audio_codec,
+            )
+            .await;
         }
-        Task::Watch(ref watch_args) => watch(watch_args, &args).await,
+        Task::Watch(ref watch_args) => {
+            let config = parse_config(&watch_args.input);
+            watch(watch_args, &config, &args).await
+        }
     };
 }

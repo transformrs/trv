@@ -1,6 +1,7 @@
 use crate::build;
 use crate::slide::Slide;
 use crate::Arguments;
+use crate::Config;
 use crate::WatchArgs;
 use ignore::Walk;
 use live_server::listen;
@@ -13,6 +14,9 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc;
 
+/// Add a timestamp to the filename.
+///
+/// This is used to bust the browser cache (force update).
 fn add_timestamp(filename: &OsStr, timestamp: u64) -> String {
     let path = Path::new(filename);
     let stem = path.file_stem().unwrap().to_str().unwrap();
@@ -20,28 +24,40 @@ fn add_timestamp(filename: &OsStr, timestamp: u64) -> String {
     format!("{}_{}.{}", stem, timestamp, extension)
 }
 
-fn core_html(out_dir: &str, slide: &Slide, timestamp: u64) -> String {
-    let video_path = crate::path::video_path(out_dir, slide);
-    let filename = video_path.file_name().unwrap();
-    let filename = add_timestamp(filename, timestamp);
+fn core_html(out_dir: &str, slide: &Slide, timestamp: u64, config: &Config) -> String {
+    let image_path = crate::path::image_path(out_dir, slide);
+    let image_file = image_path.file_name().unwrap();
+    let image_file = add_timestamp(image_file, timestamp);
+    let audio_ext = config.audio_format.clone().unwrap();
+    let audio_path = crate::path::audio_path(out_dir, slide, &audio_ext);
+    let audio_file = audio_path.file_name().unwrap();
+    let audio_file = add_timestamp(audio_file, timestamp);
     format!(
         indoc::indoc! {"
-        <h2>Slide {}</h2>
+        <div class='slide'>
+            <h2>Slide {}</h2>
 
-        <video controls>
-          <source src='{}' type='video/mp4'>
-          Your browser does not support the video tag.
-        </video>
+            <a href='{}'>
+                <img src='{}' alt='Slide {}'/><br/>
+            </a>
+            <audio controls src='{}'/></audio>
+        </div>
         "},
-        slide.idx, filename
+        slide.idx, image_file, image_file, slide.idx, audio_file
     )
 }
 
-fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> String {
+fn index(
+    args: &Arguments,
+    config: &Config,
+    slides: &[Slide],
+    timestamp: u64,
+    init: bool,
+) -> String {
     let out_dir = &args.out_dir;
     let core = slides
         .iter()
-        .map(|slide| core_html(out_dir, slide, timestamp))
+        .map(|slide| core_html(out_dir, slide, timestamp, config))
         .collect::<Vec<_>>()
         .join("\n");
     let waiting_text = if init {
@@ -65,8 +81,21 @@ fn index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) -> Stri
                 body {{
                     text-align: center;
                 }}
-                video {{
+                img {{
                     max-width: 800px;
+                    border: 1px solid transparent;
+                }}
+                img:hover {{
+                    border-color: black;
+                }}
+                audio {{
+                    width: 800px;
+                }}
+                .slide {{
+                    margin-bottom: 60px;
+                }}
+                .slide h2 {{
+                    margin-bottom: 10px;
                 }}
             </style>
         </head>
@@ -88,8 +117,8 @@ fn public_dir(args: &Arguments) -> PathBuf {
     public_path
 }
 
-fn build_index(args: &Arguments, slides: &[Slide], timestamp: u64, init: bool) {
-    let index = index(args, slides, timestamp, init);
+fn build_index(args: &Arguments, config: &Config, slides: &[Slide], timestamp: u64, init: bool) {
+    let index = index(args, config, slides, timestamp, init);
     let path = public_dir(args).join("index.html");
     tracing::info!("Writing index.html");
     std::fs::write(path, index).unwrap();
@@ -105,18 +134,24 @@ fn timestamp() -> u64 {
         .as_secs()
 }
 
-fn move_files_into_public(args: &Arguments, slides: &[Slide]) -> u64 {
+fn move_files_into_public(args: &Arguments, config: &Config, slides: &[Slide]) -> u64 {
     let public_path = public_dir(args);
     let out_dir = &args.out_dir;
 
     let timestamp = timestamp();
 
     for slide in slides {
-        let video_path = crate::path::video_path(out_dir, slide);
-        let filename = video_path.file_name().unwrap();
+        let image_path = crate::path::image_path(out_dir, slide);
+        let filename = image_path.file_name().unwrap();
         let filename = add_timestamp(filename, timestamp);
 
-        std::fs::copy(video_path, public_path.join(filename)).unwrap();
+        std::fs::copy(image_path, public_path.join(filename)).unwrap();
+
+        let audio_ext = config.audio_format.clone().unwrap();
+        let audio_path = crate::path::audio_path(out_dir, slide, &audio_ext);
+        let filename = audio_path.file_name().unwrap();
+        let filename = add_timestamp(filename, timestamp);
+        std::fs::copy(audio_path, public_path.join(filename)).unwrap();
     }
     timestamp
 }
@@ -169,16 +204,16 @@ fn run_pre_typst(watch_args: &WatchArgs) -> Status {
     Status::Success
 }
 
-async fn watch_build(watch_args: &WatchArgs, args: &Arguments) {
+async fn watch_build(watch_args: &WatchArgs, config: &Config, args: &Arguments) {
     let release = false;
     let input = watch_args.input.clone();
     let audio_codec = None;
 
     let status = run_pre_typst(watch_args);
     if status == Status::Success {
-        let slides = build(input.clone(), args, release, audio_codec).await;
-        let timestamp = move_files_into_public(args, &slides);
-        build_index(args, &slides, timestamp, false);
+        let slides = build(input.clone(), config, args, release, audio_codec).await;
+        let timestamp = move_files_into_public(args, config, &slides);
+        build_index(args, config, &slides, timestamp, false);
         remove_old_files(args, timestamp);
     }
 }
@@ -203,7 +238,7 @@ fn spawn_server(watch_args: &WatchArgs, args: &Arguments) {
     });
 }
 
-pub async fn watch(watch_args: &WatchArgs, args: &Arguments) {
+pub async fn watch(watch_args: &WatchArgs, config: &Config, args: &Arguments) {
     let (tx, rx) = mpsc::channel::<Result<Event>>();
     let mut watcher = recommended_watcher(tx).unwrap();
     let mode = notify::RecursiveMode::NonRecursive;
@@ -228,14 +263,14 @@ pub async fn watch(watch_args: &WatchArgs, args: &Arguments) {
 
     let slides = [];
     let timestamp = timestamp();
-    build_index(args, &slides, timestamp, true);
+    build_index(args, config, &slides, timestamp, true);
     spawn_server(watch_args, args);
-    watch_build(watch_args, args).await;
+    watch_build(watch_args, config, args).await;
 
     for result in &rx {
         match result {
             Ok(_event) => {
-                watch_build(watch_args, args).await;
+                watch_build(watch_args, config, args).await;
                 // Drain the channel to avoid processing old events.
                 while rx.try_recv().is_ok() {}
             }
