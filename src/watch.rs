@@ -83,10 +83,8 @@ fn index(
                 }}
                 img {{
                     max-width: 800px;
-                    border: 1px solid transparent;
-                }}
-                img:hover {{
-                    border-color: black;
+                    max-height: 80vh;
+                    border: 1px solid black;
                 }}
                 audio {{
                     width: 800px;
@@ -164,12 +162,10 @@ fn remove_old_files(args: &Arguments, timestamp: u64) {
         if !path.is_file() {
             continue;
         }
-        if let Some(extension) = path.extension() {
-            if extension == "mp4" {
-                let filename = path.file_name().unwrap().to_str().unwrap();
-                if !filename.contains(&format!("_{}", timestamp)) {
-                    std::fs::remove_file(path).unwrap();
-                }
+        if let Some(_extension) = path.extension() {
+            let filename = path.file_name().unwrap().to_str().unwrap();
+            if !filename.contains(&format!("_{}", timestamp)) {
+                std::fs::remove_file(path).unwrap();
             }
         }
     }
