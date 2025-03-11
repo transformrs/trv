@@ -28,8 +28,8 @@ fn core_html(out_dir: &str, slide: &Slide, timestamp: u64, config: &Config) -> S
     let image_path = crate::path::image_path(out_dir, slide);
     let image_file = image_path.file_name().unwrap();
     let image_file = add_timestamp(image_file, timestamp);
-    let audio_ext = config.audio_format.clone().unwrap();
-    let audio_path = crate::path::audio_path(out_dir, slide, &audio_ext);
+    let audio_ext = config.audio_format.as_ref().unwrap();
+    let audio_path = crate::path::audio_path(out_dir, slide, audio_ext);
     let audio_file = audio_path.file_name().unwrap();
     let audio_file = add_timestamp(audio_file, timestamp);
     format!(
