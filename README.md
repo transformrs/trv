@@ -201,3 +201,24 @@ $ whisper _out/out.mp4 -f srt --model small --language=en
 ```
 
 This will create a `out.srt` file with the subtitles.
+
+## Static Videos
+
+The videos created by `trv` consist only of static images.
+This might seem limiting, but as long as the content of the video is high, static images should be fine.
+Here are some YouTubers that have hundreds of thousands to millions of views while having only static images:
+
+- [Perun](https://www.youtube.com/@PerunAU)
+- [The Histocrat](https://www.youtube.com/@TheHistocrat)
+- [Christopher Manning](https://youtu.be/5Aer7MUSuSU)
+- [Richard McElreath](https://www.youtube.com/@rmcelreath)
+
+Static images with a talking-head:
+
+- [Tony Seba](https://www.youtube.com/@tonyseba)
+- [The Wild West Extravaganza](https://www.youtube.com/@WildWestExtravaganza)
+- [Andrej Karpathy](https://youtu.be/zjkBMFhNj_g)
+
+Static images with a computer-generated moving hand:
+
+- [Simplilearn](https://www.youtube.com/@SimplilearnOfficial)
