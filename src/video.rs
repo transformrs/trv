@@ -36,6 +36,30 @@ fn video_output_name(slide: &Slide) -> String {
     format!("v{}", slide.idx)
 }
 
+fn video_filters(slides: &[Slide]) -> Vec<String> {
+    slides
+        .iter()
+        .map(|slide| {
+            let input_index = stream_index(slide, Stream::Video);
+            let output_name = video_output_name(slide);
+            // For example, `[1:v]scale=-1:1920,format=yuv420p[v1];`.
+            format!("[{input_index}:v]scale=-1:{HEIGHT},format=yuv420p[{output_name}];")
+        })
+        .collect::<Vec<String>>()
+}
+
+fn video_inputs(slides: &[Slide]) -> Vec<String> {
+    slides
+        .iter()
+        .map(|slide| {
+            let video_output_name = video_output_name(slide);
+            let audio_index = stream_index(slide, Stream::Audio);
+            // For example, `[v1][0:a]`.
+            format!("[{video_output_name}][{audio_index}:a]")
+        })
+        .collect::<Vec<String>>()
+}
+
 enum Stream {
     Audio,
     Video,
@@ -79,26 +103,10 @@ pub(crate) fn combine_video(
             .arg("-i")
             .arg(image_path);
     }
-    let video_filters = slides
-        .iter()
-        .map(|slide| {
-            let input_index = stream_index(slide, Stream::Video);
-            let output_name = video_output_name(slide);
-            format!("[{input_index}:v]scale=-1:{HEIGHT},format=yuv420p[{output_name}];")
-        })
-        .collect::<Vec<String>>();
-    let inputs = slides
-        .iter()
-        .map(|slide| {
-            let video_output_name = video_output_name(slide);
-            let audio_index = stream_index(slide, Stream::Audio);
-            format!("[{video_output_name}][{audio_index}:a]")
-        })
-        .collect::<Vec<String>>();
     let filter = format!(
         "{} {} concat=n={}:v=1:a=1 [outv] [outa]",
-        video_filters.join(" "),
-        inputs.join(""),
+        video_filters(slides).join(" "),
+        video_inputs(slides).join(""),
         slides.len()
     );
     cmd.arg("-filter_complex")
