@@ -108,18 +108,23 @@
 
     #toolbox.pdfpc.speaker-note("
       To convert the presentation into a video, you can use the trv command line tool.
+      See the README for more examples and for information about how to change the text-to-speech settings.
+    ")
+]
 
-      The most important settings are related to the audio generation.
+#slide[
+    #set page(margin: 9em)
+    #set text(size: 24pt)
+    ```bash
+    $ trv watch presentation.typ
+     INFO Writing index.html
+     INFO Starting server at http://127.0.0.1:8080
+    ```
 
-      Here we use the Kokoro text-to-speech model that is hosted at kokoros.transformrs.org.
-      To run everything locally, you can also host this model yourself, see the README for more details.
-
-      The input flag specifies the input file.
-      This is the Typst presentation like the one we just saw.
-      
-      Next, the model, voice, and audio format settings are all related to the audio generation.
-
-      Finally, the release flag ensures that a release.mp4 file is created that can be played on most devices, or uploaded to most platforms.
+    #toolbox.pdfpc.speaker-note("
+      You can also use the watch command.
+      This will spawn a server that shows a preview of the presentation.
+      It will also watch the input files and automatically update the preview if a file changes.
     ")
 ]
 
