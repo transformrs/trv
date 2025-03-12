@@ -124,7 +124,7 @@ pub(crate) fn combine_video(
         .arg("-movflags")
         .arg("faststart")
         .arg(output_path);
-    tracing::info!("FFmpeg command:\n{:?}", cmd);
+    tracing::debug!("FFmpeg command:\n{:?}", cmd);
     let output = cmd.output().expect("Failed to run ffmpeg command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
