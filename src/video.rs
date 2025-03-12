@@ -1,7 +1,9 @@
 use crate::path::image_path;
 use crate::path::video_cache_key_path;
 use crate::path::video_dir_name;
+use std::path::PathBuf;
 use crate::path::video_path;
+use crate::path::audio_path;
 use crate::path::PathStr;
 use crate::slide::Slide;
 use serde::Deserialize;
@@ -163,7 +165,50 @@ pub(crate) fn create_video_clips(
     }
 }
 
-pub(crate) fn combine_video(dir: &str, slides: &Vec<Slide>, output: &str, audio_codec: &str) {
+fn probe_duration(path: &PathBuf) -> Option<String> {
+    let output = std::process::Command::new("ffprobe")
+        .arg("-i")
+        .arg(path)
+        .output()
+        .expect("Failed to run ffprobe command");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("Failed to probe duration: {stderr}");
+        return None;
+    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let duration = stderr
+        .split("Duration: ")
+        .nth(1)
+        .unwrap()
+        .split(",")
+        .next()
+        .unwrap();
+    Some(duration.to_string())
+}
+
+fn video_output_name(slide: &Slide) -> String {
+    // For example, the first video will be called v1, the second v2, etc.
+    format!("v{}", slide.idx)
+}
+
+enum Stream {
+    Audio,
+    Video
+}
+
+fn stream_index(slide: &Slide, stream: Stream) -> usize {
+    // For example, the first stream will be at 0, the second at 2, etc.
+    let index = 2 * (slide.idx - 1) as usize;
+    match stream {
+        // For example, the first audio is at index 0, the second at index 2, etc.
+        Stream::Audio => index,
+        // For example, the first image is at index 1:v, the second at index 3:v, etc.
+        Stream::Video => index + 1,
+    }
+}
+
+pub(crate) fn combine_video(dir: &str, slides: &Vec<Slide>, output: &str, audio_codec: &str, audio_ext: &str) {
     tracing::info!("Combining video clips into one video...");
     let output = Path::new(dir).join(output);
     let output_path = output.to_str().unwrap();
@@ -171,26 +216,50 @@ pub(crate) fn combine_video(dir: &str, slides: &Vec<Slide>, output: &str, audio_
     let concat_list = concat_list.to_str().unwrap();
     write_concat_list(dir, concat_list, slides);
 
-    let output = std::process::Command::new("ffmpeg")
-        .arg("-y")
-        .arg("-f")
-        .arg("concat")
-        .arg("-i")
-        .arg(concat_list)
-        .arg("-c:v")
-        // Re-encode to ensure video can be trimmed.
-        .arg("libx264")
-        .arg("-c:a")
-        .arg(audio_codec)
-        // Experimental is required for opus.
-        .arg("-strict")
-        .arg("experimental")
-        // Aresample in attempt to fix audio sync.
-        .arg("-af")
-        .arg("aresample=async=1")
-        // To avoid pauses at the end of the video.
-        .arg("-shortest")
-        .arg(output_path)
+    let mut cmd = std::process::Command::new("ffmpeg");
+    cmd.arg("-y");
+    for slide in slides {
+        let audio_path = audio_path(dir, slide, audio_ext);
+        cmd.arg("-i").arg(&audio_path);
+        let image_path = image_path(dir, slide);
+        let duration = probe_duration(&audio_path).unwrap();
+        cmd.arg("-loop").arg("1").arg("-framerate").arg("1").arg("-t").arg(duration).arg("-i").arg(image_path);
+    }
+    let video_filters = slides.iter().map(|slide| {
+        let input_index = stream_index(slide, Stream::Video);
+        let output_name = video_output_name(slide);
+        format!("[{input_index}:v]scale=-1:{HEIGHT},format=yuv420p[{output_name}];")
+    }).collect::<Vec<String>>();
+    let inputs = slides.iter().map(|slide| {
+        let video_output_name = video_output_name(slide);
+        let audio_index = stream_index(slide, Stream::Audio);
+        format!("[{video_output_name}][{audio_index}:a]")
+    }).collect::<Vec<String>>();
+    let filter = format!("{} {} concat=n=2:v=1:a=1 [outv] [outa]", video_filters.join(" "), inputs.join(""));
+    tracing::debug!("Video filter: {}", filter);
+    cmd.arg("-filter_complex")
+        .arg(filter)
+    .arg("-map")
+    .arg("[outv]")
+    // Re-encode to 30 fps since most video players don't like 1 fps.
+    .arg("-r")
+    .arg("30")
+    .arg("-map")
+    .arg("[outa]")
+    .arg("-tune")
+    .arg("stillimage")
+    // Experimental is required for opus.
+    .arg("-strict")
+    .arg("-2")
+    // Default audio codec is aac which has poor quality.
+    .arg("-c:a")
+    .arg(audio_codec)
+    // Move some data to the beginning for faster playback start.
+    .arg("-movflags")
+    .arg("faststart")
+    .arg(output_path);
+    tracing::debug!("FFmpeg command:\n{:?}", cmd);
+    let output = cmd
         .output()
         .expect("Failed to run ffmpeg command");
     if !output.status.success() {
