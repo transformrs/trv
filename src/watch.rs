@@ -28,8 +28,8 @@ fn core_html(out_dir: &str, slide: &Slide, timestamp: u64, config: &Config) -> S
     let image_path = crate::path::image_path(out_dir, slide);
     let image_file = image_path.file_name().unwrap();
     let image_file = add_timestamp(image_file, timestamp);
-    let audio_ext = config.audio_format.as_ref().unwrap();
-    let audio_path = crate::path::audio_path(out_dir, slide, audio_ext);
+    let audio_ext = audio_format(config);
+    let audio_path = crate::path::audio_path(out_dir, slide, &audio_ext);
     let audio_file = audio_path.file_name().unwrap();
     let audio_file = add_timestamp(audio_file, timestamp);
     format!(
@@ -132,6 +132,10 @@ fn timestamp() -> u64 {
         .as_secs()
 }
 
+fn audio_format(config: &Config) -> String {
+    config.audio_format.clone().unwrap_or("mp3".to_string())
+}
+
 fn move_files_into_public(args: &Arguments, config: &Config, slides: &[Slide]) -> u64 {
     let public_path = public_dir(args);
     let out_dir = &args.out_dir;
@@ -145,7 +149,7 @@ fn move_files_into_public(args: &Arguments, config: &Config, slides: &[Slide]) -
 
         std::fs::copy(image_path, public_path.join(filename)).unwrap();
 
-        let audio_ext = config.audio_format.clone().unwrap();
+        let audio_ext = audio_format(config);
         let audio_path = crate::path::audio_path(out_dir, slide, &audio_ext);
         let filename = audio_path.file_name().unwrap();
         let filename = add_timestamp(filename, timestamp);

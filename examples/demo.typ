@@ -100,7 +100,7 @@
 ]
 
 #slide[
-    #set page(margin: 9em)
+    #set page(margin: 6em)
     #set text(size: 24pt)
     ```bash
     $ trv build presentation.typ
@@ -113,7 +113,7 @@
 ]
 
 #slide[
-    #set page(margin: 9em)
+    #set page(margin: 6em)
     #set text(size: 24pt)
     ```bash
     $ trv watch presentation.typ
