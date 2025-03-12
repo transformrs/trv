@@ -96,9 +96,10 @@ pub(crate) fn combine_video(
         })
         .collect::<Vec<String>>();
     let filter = format!(
-        "{} {} concat=n=2:v=1:a=1 [outv] [outa]",
+        "{} {} concat=n={}:v=1:a=1 [outv] [outa]",
         video_filters.join(" "),
-        inputs.join("")
+        inputs.join(""),
+        slides.len()
     );
     cmd.arg("-filter_complex")
         .arg(filter)
@@ -117,11 +118,13 @@ pub(crate) fn combine_video(
         // Default audio codec is aac which has poor quality.
         .arg("-c:a")
         .arg(audio_codec)
+        // Try to avoid pauses.
+        .arg("-shortest")
         // Move some data to the beginning for faster playback start.
         .arg("-movflags")
         .arg("faststart")
         .arg(output_path);
-    tracing::debug!("FFmpeg command:\n{:?}", cmd);
+    tracing::info!("FFmpeg command:\n{:?}", cmd);
     let output = cmd.output().expect("Failed to run ffmpeg command");
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);

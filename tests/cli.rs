@@ -29,10 +29,6 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
         "audio/1.mp3",
         "audio/2.mp3",
         "audio/1.audio.cache_key",
-        "video/1.mp4",
-        "video/2.mp4",
-        "video/1.video.cache_key",
-        "concat_list.txt",
         "out.mp4",
     ];
     for file in &files {
@@ -71,9 +67,6 @@ fn test_cache() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(predicate::str::contains("Slide 1: Generating audio file"))
         .stdout(predicate::str::contains(
             "Slide 1: Skipping audio generation due to cache",
-        ))
-        .stdout(predicate::str::contains(
-            "Slide 1: Skipping video generation due to cache",
         ));
 
     Ok(())
@@ -90,8 +83,6 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
         "audio/1.wav",
         "audio/2.wav",
         "audio/1.audio.cache_key",
-        "video/1.mp4",
-        "concat_list.txt",
         "out.mp4",
     ];
     for file in &files {
@@ -128,8 +119,6 @@ fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
         "audio/1.mp3",
         "audio/2.mp3",
         "audio/1.audio.cache_key",
-        "video/1.mp4",
-        "concat_list.txt",
         "out.mp4",
     ];
     for file in &files {
@@ -221,7 +210,7 @@ fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = bin();
     cmd.env("GOOGLE_KEY", key);
     cmd.arg(format!("--out-dir={}", out_dir));
-    cmd.arg("--verbose");
+    // cmd.arg("--verbose");
     cmd.arg("--cache=false");
     cmd.arg("build");
     cmd.arg("tests/test_duration_matches.typ");
@@ -241,7 +230,7 @@ fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
     println!("audio_duration: {audio_duration}");
     let audio_duration = duration_as_seconds(&audio_duration);
     println!("audio_duration: {audio_duration} seconds");
-    assert!(video_duration - audio_duration < 0.1);
+    assert!(video_duration - audio_duration < 0.01);
 
     Ok(())
 }
