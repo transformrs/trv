@@ -29,20 +29,3 @@ pub fn audio_cache_key_path(dir: &str, slide: &Slide) -> PathBuf {
     let filename = format!("{idx}.audio.cache_key");
     Path::new(dir).join("audio").join(filename)
 }
-
-pub fn video_cache_key_path(dir: &str, slide: &Slide) -> PathBuf {
-    let idx = slide.idx;
-    let filename = format!("{idx}.video.cache_key");
-    Path::new(dir).join("video").join(filename)
-}
-
-pub fn video_dir_name() -> &'static str {
-    "video"
-}
-
-pub fn video_path(dir: &str, slide: &Slide) -> PathBuf {
-    let idx = slide.idx;
-    // Using mp4 by default because it is widely supported in browsers.
-    let filename = format!("{idx}.mp4");
-    Path::new(dir).join(video_dir_name()).join(filename)
-}
