@@ -144,7 +144,6 @@ $ trv build presentation.typ
 
 ## Google
 
-My favourite text-to-speech engine is the one from Google.
 An okay text-to-speech engine is the one from Google.
 It sounds very natural, but new voices like `en-US-Chirp3-HD-Orus` sometimes adds random sounds or noises.
 Overall, I think Kokoro is the better option for now.
@@ -212,6 +211,7 @@ This might seem limiting, but as long as the content of the video is high, stati
 Here are some YouTubers that have hundreds of thousands to millions of views with only static images:
 
 - [Perun](https://www.youtube.com/@PerunAU)
+- [No Boilerplate](https://www.youtube.com/@NoBoilerplate)
 - [The Histocrat](https://www.youtube.com/@TheHistocrat)
 - [Christopher Manning](https://youtu.be/5Aer7MUSuSU)
 - [Richard McElreath](https://www.youtube.com/@rmcelreath)
