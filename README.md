@@ -175,7 +175,7 @@ So it's probably easiest to use DeepInfra:
 ```raw
 $ export DEEPINFRA_KEY="<YOUR KEY>"
 
-$ trv build presentation.typ
+$ trv build examples/zonos.typ
 ```
 
 [![Zyphra Zonos demo video](https://transformrs.github.io/trv/zonos.png)](https://transformrs.github.io/trv/zonos.mp4)

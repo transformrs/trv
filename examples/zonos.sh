@@ -4,4 +4,4 @@
 
 export DEEPINFRA_KEY=$(cat keys.env | grep DEEPINFRA_KEY | cut -d '=' -f 2)
 
-trv --verbose build examples/zonos.typ
+trv build examples/zonos.typ
