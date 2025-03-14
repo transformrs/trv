@@ -161,8 +161,10 @@ pub(crate) fn combine_video(
         cmd.arg("-i").arg(&audio_path);
         let image_path = image_path(dir, slide);
         // Sentences normally have a pause between them. Without this pause,
-        // sentences at transitions will be too close to each other.
-        let transition_pause = chrono::Duration::milliseconds(100);
+        // sentences around slide transitions will be too close to each other.
+        // According to Goldman-Eisler (1968), articulatory pauses are typically
+        // below 250 ms while hesitation pauses are typically above that.
+        let transition_pause = chrono::Duration::milliseconds(200);
         let duration = probe_duration(&audio_path).unwrap() + transition_pause;
         cmd.arg("-loop")
             .arg("1")
