@@ -162,8 +162,12 @@ fn transition_pause(config: &Config, provider: &Provider) -> chrono::Duration {
         if model.to_lowercase().contains("zonos") {
             return chrono::Duration::milliseconds(200);
         }
+        if model.to_lowercase().contains("kokoro") {
+            // Most of the time, the pause is fine in Kokoro, but not always.
+            return chrono::Duration::milliseconds(50);
+        }
     }
-    chrono::Duration::milliseconds(0)
+    chrono::Duration::milliseconds(50)
 }
 
 pub(crate) fn combine_video(
