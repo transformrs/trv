@@ -237,7 +237,7 @@ pub(crate) async fn build(
     let output = "out.mp4";
     if release {
         let audio_codec = audio_codec.unwrap();
-        video::combine_video(out_dir, &slides, &config, &provider, output, &audio_codec);
+        video::combine_video(out_dir, &slides, config, &provider, output, &audio_codec);
     }
     slides
 }

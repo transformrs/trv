@@ -168,7 +168,7 @@ fn transition_pause(config: &Config, provider: &Provider) -> chrono::Duration {
 
 pub(crate) fn combine_video(
     dir: &str,
-    slides: &Vec<Slide>,
+    slides: &[Slide],
     config: &Config,
     provider: &Provider,
     output: &str,
