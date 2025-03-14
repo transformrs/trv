@@ -90,8 +90,8 @@
     ]
 
     #toolbox.pdfpc.speaker-note("
-      To create the presentation, we use Typest.
-      Typest is a new typesetting system that is similar to LaTeX.
+      To create the presentation, we use Typst.
+      Typst is a new typesetting system that is similar to LaTeX.
 
       Here for example is a simple document with one slide.
       The slide contains the text Hello.
