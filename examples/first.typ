@@ -19,7 +19,6 @@
 
     #toolbox.pdfpc.speaker-note("
       What if you could easily generate videos from text?
-
       I think that would be pretty cool.
     ")
 ]

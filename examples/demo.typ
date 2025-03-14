@@ -90,12 +90,13 @@
     ]
 
     #toolbox.pdfpc.speaker-note("
-      To create the presentation, we use Typst.
-      Typst is a new typesetting system that is similar to LaTeX.
+      To create the presentation, we use Typest.
+      Typest is a new typesetting system that is similar to LaTeX.
 
-      Here for example is a simple Typst document with one slide.
-      The slide contains the text Hello
-      and a speaker note with the text This page contains Hello
+      Here for example is a simple document with one slide.
+      The slide contains the text Hello.
+
+      It also contains a speaker note with the text This page contains Hello
     ")
 ]
 
@@ -108,6 +109,7 @@
 
     #toolbox.pdfpc.speaker-note("
       To convert the presentation into a video, you can use the trv command line tool.
+
       See the README for more examples and for information about how to change the text-to-speech settings.
     ")
 ]

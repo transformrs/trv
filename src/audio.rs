@@ -78,7 +78,6 @@ async fn generate_audio_file(
         }
         _ => get_key(keys, provider),
     };
-    let msg = &slide.speaker_note;
     let is_cached = cache && is_cached(dir, slide, config, audio_ext);
     if is_cached {
         tracing::info!(
@@ -88,7 +87,8 @@ async fn generate_audio_file(
         return;
     }
     let model = model.as_deref();
-    let resp = transformrs::text_to_speech::tts(provider, &key, config, model, msg)
+    let text = &slide.speaker_note;
+    let resp = transformrs::text_to_speech::tts(provider, &key, config, model, text)
         .await
         .unwrap()
         .structured()

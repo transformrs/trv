@@ -8,16 +8,43 @@ pub struct Slide {
     pub speaker_note: String,
 }
 
+/// Cleanup the speaker note.
+///
+/// For example, this removes whitespace in front of the text. Kokoro typically
+/// ignores the space, but other models like Zyphra Zonos may add random sounds
+/// due to the space. To see this, add 4 spaces in front of the Zonos demo at
+/// deepinfra.com and see it will add a sound like "aaah". The demo at the
+/// Zyphra Playground does not have this issue.
+fn trim_speaker_note(text: &str) -> String {
+    let lines = text.lines().collect::<Vec<&str>>();
+    let trimmed = lines
+        .iter()
+        .map(|line| line.trim())
+        .collect::<Vec<&str>>()
+        .join("\n");
+    let placeholder = "<<<DOUBLE NEWLINE>>>";
+    let less_newlines = trimmed
+        .replace("\n\n", placeholder)
+        .replace("\n", "")
+        .replace(placeholder, "\n\n");
+    less_newlines.trim().to_string()
+}
+
+#[test]
+fn test_trim_speaker_note() {
+    let text = "\n    foo.\n\nbar.\n\n ";
+    let out = trim_speaker_note(text);
+    assert_eq!(out, "foo.\n\nbar.");
+}
+
 impl Slide {
     fn new(idx: &Value, speaker_note: &Value) -> Self {
         let idx = idx.get("v").and_then(|v| v.as_u64()).unwrap();
         // Typst generates images starting at index 1.
         let idx = idx + 1;
         let speaker_note = speaker_note.get("v").and_then(|v| v.as_str()).unwrap();
-        Self {
-            idx,
-            speaker_note: speaker_note.to_string(),
-        }
+        let speaker_note = trim_speaker_note(speaker_note);
+        Self { idx, speaker_note }
     }
 }
 
