@@ -1,3 +1,4 @@
+use crate::audio_format;
 use crate::build;
 use crate::slide::Slide;
 use crate::Arguments;
@@ -130,10 +131,6 @@ fn timestamp() -> u64 {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs()
-}
-
-fn audio_format(config: &Config) -> String {
-    config.audio_format.clone().unwrap_or("mp3".to_string())
 }
 
 fn move_files_into_public(args: &Arguments, config: &Config, slides: &[Slide]) -> u64 {

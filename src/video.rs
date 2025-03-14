@@ -1,6 +1,9 @@
+use crate::audio_format;
 use crate::path::audio_path;
 use crate::path::image_path;
 use crate::slide::Slide;
+use crate::Config;
+use crate::Provider;
 use chrono::NaiveTime;
 use chrono::SubsecRound;
 use chrono::Timelike;
@@ -143,29 +146,54 @@ fn stream_index(slide: &Slide, stream: Stream) -> usize {
     }
 }
 
+/// Pause duration for transitions.
+///
+/// Sentences normally have a pause between them. Without this pause,
+/// sentences around slide transitions will be too close to each other.
+/// According to Goldman-Eisler (1968), articulatory pauses are typically
+/// below 250 ms while hesitation pauses are typically above that.
+fn transition_pause(config: &Config, provider: &Provider) -> chrono::Duration {
+    // Google does not automatically have a pause between audio clips.
+    if provider == &Provider::Google {
+        return chrono::Duration::milliseconds(200);
+    }
+    if let Some(model) = &config.model {
+        // Nor does the Zyphra Zonos model.
+        if model.to_lowercase().contains("zonos") {
+            return chrono::Duration::milliseconds(200);
+        }
+    }
+    chrono::Duration::milliseconds(0)
+}
+
 pub(crate) fn combine_video(
     dir: &str,
     slides: &Vec<Slide>,
+    config: &Config,
+    provider: &Provider,
     output: &str,
     audio_codec: &str,
-    audio_ext: &str,
 ) {
+    let audio_ext = audio_format(config);
     tracing::info!("Combining images and audio into one video...");
     let output = Path::new(dir).join(output);
     let output_path = output.to_str().unwrap();
 
     let mut cmd = std::process::Command::new("ffmpeg");
     cmd.arg("-y");
-    for slide in slides {
-        let audio_path = audio_path(dir, slide, audio_ext);
+    let n = slides.len();
+    for (i, slide) in slides.iter().enumerate() {
+        let audio_path = audio_path(dir, slide, &audio_ext);
         cmd.arg("-i").arg(&audio_path);
         let image_path = image_path(dir, slide);
-        // Sentences normally have a pause between them. Without this pause,
-        // sentences around slide transitions will be too close to each other.
-        // According to Goldman-Eisler (1968), articulatory pauses are typically
-        // below 250 ms while hesitation pauses are typically above that.
-        let transition_pause = chrono::Duration::milliseconds(200);
-        let duration = probe_duration(&audio_path).unwrap() + transition_pause;
+        let pause = if i < n - 1 {
+            transition_pause(config, provider)
+        } else {
+            // Sometimes the audio is trimmed at the end. Adding a small pause
+            // to avoid this.
+            chrono::Duration::milliseconds(500)
+        };
+        let duration = probe_duration(&audio_path).unwrap() + pause;
         cmd.arg("-loop")
             .arg("1")
             .arg("-framerate")
