@@ -1,6 +1,12 @@
+use crate::audio_format;
 use crate::path::audio_path;
 use crate::path::image_path;
 use crate::slide::Slide;
+use crate::Config;
+use crate::Provider;
+use chrono::NaiveTime;
+use chrono::SubsecRound;
+use chrono::Timelike;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -9,7 +15,46 @@ use std::path::PathBuf;
 // Since the video consists of images, data-wise it should be not a problem to go for a higher resolution.
 const HEIGHT: i32 = 1920;
 
-fn probe_duration(path: &PathBuf) -> Option<String> {
+/// Parse the duration from the output of `ffprobe`.
+///
+/// See https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax.
+fn parse_ffmpeg_duration(duration: &str) -> NaiveTime {
+    let parts: Vec<&str> = duration.split(":").collect();
+    let hour = parts[0].parse::<u32>().unwrap();
+    let min = parts[1].parse::<u32>().unwrap();
+    let last_parts = parts[2].split(".").collect::<Vec<&str>>();
+    let sec = last_parts[0].parse::<u32>().unwrap();
+    let fraction = format!("0.{}", last_parts[1]);
+    let second_fraction = fraction.parse::<f64>().unwrap();
+    let milli = (second_fraction * 1000.0) as u32;
+    chrono::NaiveTime::from_hms_milli_opt(hour, min, sec, milli).unwrap()
+}
+
+#[test]
+fn test_parse_ffprobe_duration() {
+    assert_eq!(
+        parse_ffmpeg_duration("00:00:00.50"),
+        NaiveTime::from_hms_milli_opt(0, 0, 0, 500).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("00:00:01.45"),
+        NaiveTime::from_hms_milli_opt(0, 0, 1, 450).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("00:01:00.45"),
+        NaiveTime::from_hms_milli_opt(0, 1, 0, 450).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("01:00:00.45"),
+        NaiveTime::from_hms_milli_opt(1, 0, 0, 450).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("01:00:00.99"),
+        NaiveTime::from_hms_milli_opt(1, 0, 0, 990).unwrap()
+    );
+}
+
+fn probe_duration(path: &PathBuf) -> Option<NaiveTime> {
     let output = std::process::Command::new("ffprobe")
         .arg("-i")
         .arg(path)
@@ -28,7 +73,32 @@ fn probe_duration(path: &PathBuf) -> Option<String> {
         .split(",")
         .next()
         .unwrap();
-    Some(duration.to_string())
+    Some(parse_ffmpeg_duration(duration))
+}
+
+fn print_ffmpeg_duration(duration: &NaiveTime) -> String {
+    let hour = duration.hour();
+    let min = duration.minute();
+    let sec = duration.second();
+    let subsecs = duration.round_subsecs(9);
+    let milli = subsecs.nanosecond() as f64 / 10_000_000.0;
+    format!("{hour:02}:{min:02}:{sec:02}.{milli:02}")
+}
+
+#[test]
+fn test_print_ffmpeg_duration() {
+    assert_eq!(
+        print_ffmpeg_duration(&NaiveTime::from_hms_milli_opt(0, 0, 0, 500).unwrap()),
+        "00:00:00.50"
+    );
+    assert_eq!(
+        print_ffmpeg_duration(&NaiveTime::from_hms_milli_opt(0, 0, 10, 10).unwrap()),
+        "00:00:10.01"
+    );
+    assert_eq!(
+        print_ffmpeg_duration(&NaiveTime::from_hms_milli_opt(0, 0, 10, 990).unwrap()),
+        "00:00:10.99"
+    );
 }
 
 fn video_output_name(slide: &Slide) -> String {
@@ -76,30 +146,64 @@ fn stream_index(slide: &Slide, stream: Stream) -> usize {
     }
 }
 
+/// Pause duration for transitions.
+///
+/// Sentences normally have a pause between them. Without this pause,
+/// sentences around slide transitions will be too close to each other.
+/// According to Goldman-Eisler (1968), articulatory pauses are typically
+/// below 250 ms while hesitation pauses are typically above that.
+fn transition_pause(config: &Config, provider: &Provider) -> chrono::Duration {
+    // Google does not automatically have a pause between audio clips.
+    if provider == &Provider::Google {
+        return chrono::Duration::milliseconds(200);
+    }
+    if let Some(model) = &config.model {
+        // Nor does the Zyphra Zonos model.
+        if model.to_lowercase().contains("zonos") {
+            return chrono::Duration::milliseconds(200);
+        }
+        if model.to_lowercase().contains("kokoro") {
+            // Most of the time, the pause is fine in Kokoro, but not always.
+            return chrono::Duration::milliseconds(50);
+        }
+    }
+    chrono::Duration::milliseconds(0)
+}
+
 pub(crate) fn combine_video(
     dir: &str,
-    slides: &Vec<Slide>,
+    slides: &[Slide],
+    config: &Config,
+    provider: &Provider,
     output: &str,
     audio_codec: &str,
-    audio_ext: &str,
 ) {
+    let audio_ext = audio_format(config);
     tracing::info!("Combining images and audio into one video...");
     let output = Path::new(dir).join(output);
     let output_path = output.to_str().unwrap();
 
     let mut cmd = std::process::Command::new("ffmpeg");
     cmd.arg("-y");
-    for slide in slides {
-        let audio_path = audio_path(dir, slide, audio_ext);
+    let n = slides.len();
+    for (i, slide) in slides.iter().enumerate() {
+        let audio_path = audio_path(dir, slide, &audio_ext);
         cmd.arg("-i").arg(&audio_path);
         let image_path = image_path(dir, slide);
-        let duration = probe_duration(&audio_path).unwrap();
+        let pause = if i < n - 1 {
+            transition_pause(config, provider)
+        } else {
+            // Sometimes the audio is trimmed at the end. Adding a small pause
+            // to avoid this.
+            chrono::Duration::milliseconds(500)
+        };
+        let duration = probe_duration(&audio_path).unwrap() + pause;
         cmd.arg("-loop")
             .arg("1")
             .arg("-framerate")
             .arg("1")
             .arg("-t")
-            .arg(duration)
+            .arg(print_ffmpeg_duration(&duration))
             .arg("-i")
             .arg(image_path);
     }

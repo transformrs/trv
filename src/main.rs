@@ -200,6 +200,10 @@ fn tts_config(config: &Config, provider: &Provider) -> TTSConfig {
     }
 }
 
+pub(crate) fn audio_format(config: &Config) -> String {
+    config.audio_format.clone().unwrap_or("mp3".to_string())
+}
+
 pub(crate) async fn build(
     input: PathBuf,
     config: &Config,
@@ -218,10 +222,7 @@ pub(crate) async fn build(
         panic!("No slides found in input file: {}", input.display());
     }
     image::generate_images(&input, out_dir);
-    let audio_ext = tts_config
-        .output_format
-        .clone()
-        .unwrap_or("mp3".to_string());
+    let audio_ext = audio_format(config);
     let cache = args.cache.unwrap();
     audio::generate_audio_files(
         &provider,
@@ -236,7 +237,7 @@ pub(crate) async fn build(
     let output = "out.mp4";
     if release {
         let audio_codec = audio_codec.unwrap();
-        video::combine_video(out_dir, &slides, output, &audio_codec, &audio_ext);
+        video::combine_video(out_dir, &slides, config, &provider, output, &audio_codec);
     }
     slides
 }
