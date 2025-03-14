@@ -144,9 +144,7 @@ $ trv build presentation.typ
 
 ## Google
 
-An okay text-to-speech engine is the one from Google.
-It sounds very natural, but new voices like `en-US-Chirp3-HD-Orus` sometimes adds random sounds or noises.
-Overall, I think Kokoro is the better option for now.
+Another text-to-speech engine is the one from Google.
 
 ```raw
 $ export GOOGLE_KEY="<YOUR KEY>"
