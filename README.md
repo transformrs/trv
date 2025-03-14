@@ -166,8 +166,9 @@ So it's probably easiest to use DeepInfra:
 
 // --- trv config:
 // provider = "deepinfra"
-// model = "Zyphra/Zonos-v0.1-hybrid"
+// model = "Zyphra/Zonos-v0.1-transformer"
 // voice = "american_male"
+// audio_format = "mp3"
 // ---
 ```
 
@@ -177,9 +178,12 @@ $ export DEEPINFRA_KEY="<YOUR KEY>"
 $ trv build presentation.typ
 ```
 
-Do note that Zonos is way more unstable than Kokoros at the time of writing.
-For example, sometimes it will add random sounds like the sound of swallowing.
-So in practice, the Kokoro model is probably the better option for now.
+[![Zyphra Zonos demo video](https://transformrs.github.io/trv/zonos.png)](https://transformrs.github.io/trv/zonos.mp4)
+
+Here the model was set to the transformer (`Zonos-v0.1-transformer`) model instead of the hybrid one (`Zonos-v0.1-hybrid`).
+According to the [Zyphra Zonos playground](https://playground.zyphra.com/audio), the transformer model is better for "clear articulation" and "better with long texts".
+The hybrid model is better for "emotional speech", with a "more natural prosody", and is "better for short phrases".
+Since slides typically have relatively long texts, the transformer model is probably the better option.
 
 ## Portrait Video
 

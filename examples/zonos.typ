@@ -3,11 +3,10 @@
 #set page(paper: "presentation-16-9")
 
 // --- trv config:
-// provider = "openai-compatible(kokoros.transformrs.org)"
-// model = "tts-1"
-// voice = "af_sky"
-// speed = 0.95
-// audio_format = "wav"
+// provider = "deepinfra"
+// model = "Zyphra/Zonos-v0.1-transformer"
+// voice = "american_male"
+// audio_format = "mp3"
 // ---
 
 #slide[

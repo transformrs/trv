@@ -59,6 +59,11 @@ jobs:
             convert _out/image/1.png play_button.png -gravity center -composite tmp.png
             mv tmp.png _public/first.png
 
+            ./examples/zonos.sh
+            mv _out/out.mp4 _public/zonos.mp4
+            convert _out/image/1.png play_button.png -gravity center -composite tmp.png
+            mv tmp.png _public/zonos.png
+
       - name: Cleanup
         run: rm keys.env
 

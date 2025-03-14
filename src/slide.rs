@@ -25,16 +25,16 @@ fn trim_speaker_note(text: &str) -> String {
     let placeholder = "<<<DOUBLE NEWLINE>>>";
     let less_newlines = trimmed
         .replace("\n\n", placeholder)
-        .replace("\n", "")
+        .replace("\n", " ")
         .replace(placeholder, "\n\n");
     less_newlines.trim().to_string()
 }
 
 #[test]
 fn test_trim_speaker_note() {
-    let text = "\n    foo.\n\nbar.\n\n ";
+    let text = "\n    foo.\n   bar.\n\nbaz.\n\n ";
     let out = trim_speaker_note(text);
-    assert_eq!(out, "foo.\n\nbar.");
+    assert_eq!(out, "foo. bar.\n\nbaz.");
 }
 
 impl Slide {
