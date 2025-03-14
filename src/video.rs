@@ -2,6 +2,8 @@ use crate::path::audio_path;
 use crate::path::image_path;
 use crate::slide::Slide;
 use chrono::NaiveTime;
+use chrono::SubsecRound;
+use chrono::Timelike;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -64,6 +66,35 @@ fn test_parse_ffprobe_duration() {
     assert_eq!(
         parse_ffmpeg_duration("01:00:00.45"),
         NaiveTime::from_hms_milli_opt(1, 0, 0, 450).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("01:00:00.99"),
+        NaiveTime::from_hms_milli_opt(1, 0, 0, 990).unwrap()
+    );
+}
+
+fn print_ffmpeg_duration(duration: &NaiveTime) -> String {
+    let hour = duration.hour();
+    let min = duration.minute();
+    let sec = duration.second();
+    let subsecs = duration.round_subsecs(9);
+    let milli = subsecs.nanosecond() as f64 / 10_000_000.0;
+    format!("{hour:02}:{min:02}:{sec:02}.{milli:02}")
+}
+
+#[test]
+fn test_print_ffmpeg_duration() {
+    assert_eq!(
+        print_ffmpeg_duration(&NaiveTime::from_hms_milli_opt(0, 0, 0, 500).unwrap()),
+        "00:00:00.50"
+    );
+    assert_eq!(
+        print_ffmpeg_duration(&NaiveTime::from_hms_milli_opt(0, 0, 10, 10).unwrap()),
+        "00:00:10.01"
+    );
+    assert_eq!(
+        print_ffmpeg_duration(&NaiveTime::from_hms_milli_opt(0, 0, 10, 990).unwrap()),
+        "00:00:10.99"
     );
 }
 
