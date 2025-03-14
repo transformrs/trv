@@ -12,7 +12,7 @@ Transform slides and speaker notes into video.
 - 🚀 A development mode with a built-in web server for fast feedback.
 - 🌐 Support for multiple languages and voices.
 - 🚀 Small file sizes for easy sharing and hosting.
-- 🔒 Fully offline generation of audio is possible via the Kokoro text-to-speech model.
+- 🔒 Support for fully offline video generation via the Kokoro text-to-speech model.
 
 ## Installation
 
