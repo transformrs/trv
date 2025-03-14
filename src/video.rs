@@ -12,28 +12,6 @@ use std::path::PathBuf;
 // Since the video consists of images, data-wise it should be not a problem to go for a higher resolution.
 const HEIGHT: i32 = 1920;
 
-fn probe_duration(path: &PathBuf) -> Option<String> {
-    let output = std::process::Command::new("ffprobe")
-        .arg("-i")
-        .arg(path)
-        .output()
-        .expect("Failed to run ffprobe command");
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("Failed to probe duration: {stderr}");
-        return None;
-    }
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let duration = stderr
-        .split("Duration: ")
-        .nth(1)
-        .unwrap()
-        .split(",")
-        .next()
-        .unwrap();
-    Some(duration.to_string())
-}
-
 /// Parse the duration from the output of `ffprobe`.
 ///
 /// See https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax.
@@ -71,6 +49,28 @@ fn test_parse_ffprobe_duration() {
         parse_ffmpeg_duration("01:00:00.99"),
         NaiveTime::from_hms_milli_opt(1, 0, 0, 990).unwrap()
     );
+}
+
+fn probe_duration(path: &PathBuf) -> Option<NaiveTime> {
+    let output = std::process::Command::new("ffprobe")
+        .arg("-i")
+        .arg(path)
+        .output()
+        .expect("Failed to run ffprobe command");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("Failed to probe duration: {stderr}");
+        return None;
+    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let duration = stderr
+        .split("Duration: ")
+        .nth(1)
+        .unwrap()
+        .split(",")
+        .next()
+        .unwrap();
+    Some(parse_ffmpeg_duration(duration))
 }
 
 fn print_ffmpeg_duration(duration: &NaiveTime) -> String {
@@ -160,13 +160,16 @@ pub(crate) fn combine_video(
         let audio_path = audio_path(dir, slide, audio_ext);
         cmd.arg("-i").arg(&audio_path);
         let image_path = image_path(dir, slide);
-        let duration = probe_duration(&audio_path).unwrap();
+        // Sentences normally have a pause between them. Without this pause,
+        // sentences at transitions will be too close to each other.
+        let transition_pause = chrono::Duration::milliseconds(100);
+        let duration = probe_duration(&audio_path).unwrap() + transition_pause;
         cmd.arg("-loop")
             .arg("1")
             .arg("-framerate")
             .arg("1")
             .arg("-t")
-            .arg(duration)
+            .arg(print_ffmpeg_duration(&duration))
             .arg("-i")
             .arg(image_path);
     }
