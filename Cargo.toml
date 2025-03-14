@@ -23,6 +23,7 @@ live-server = "0.10.0"
 notify = "8.0"
 indoc = "2"
 ignore = "0.4"
+chrono = "0.4.40"
 
 [dev-dependencies]
 assert_cmd = "2"

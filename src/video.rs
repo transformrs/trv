@@ -1,6 +1,7 @@
 use crate::path::audio_path;
 use crate::path::image_path;
 use crate::slide::Slide;
+use chrono::NaiveTime;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -29,6 +30,41 @@ fn probe_duration(path: &PathBuf) -> Option<String> {
         .next()
         .unwrap();
     Some(duration.to_string())
+}
+
+/// Parse the duration from the output of `ffprobe`.
+///
+/// See https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax.
+fn parse_ffmpeg_duration(duration: &str) -> NaiveTime {
+    let parts: Vec<&str> = duration.split(":").collect();
+    let hour = parts[0].parse::<u32>().unwrap();
+    let min = parts[1].parse::<u32>().unwrap();
+    let last_parts = parts[2].split(".").collect::<Vec<&str>>();
+    let sec = last_parts[0].parse::<u32>().unwrap();
+    let fraction = format!("0.{}", last_parts[1]);
+    let second_fraction = fraction.parse::<f64>().unwrap();
+    let milli = (second_fraction * 1000.0) as u32;
+    chrono::NaiveTime::from_hms_milli_opt(hour, min, sec, milli).unwrap()
+}
+
+#[test]
+fn test_parse_ffprobe_duration() {
+    assert_eq!(
+        parse_ffmpeg_duration("00:00:00.50"),
+        NaiveTime::from_hms_milli_opt(0, 0, 0, 500).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("00:00:01.45"),
+        NaiveTime::from_hms_milli_opt(0, 0, 1, 450).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("00:01:00.45"),
+        NaiveTime::from_hms_milli_opt(0, 1, 0, 450).unwrap()
+    );
+    assert_eq!(
+        parse_ffmpeg_duration("01:00:00.45"),
+        NaiveTime::from_hms_milli_opt(1, 0, 0, 450).unwrap()
+    );
 }
 
 fn video_output_name(slide: &Slide) -> String {
