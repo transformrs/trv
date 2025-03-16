@@ -35,6 +35,7 @@ jobs:
 
       - run: |
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > keys.env
+          echo "ELEVENLABS_KEY=${{ secrets.ELEVENLABS_KEY }}" >> keys.env
           echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> keys.env
           echo "OPENAI_KEY=${{ secrets.OPENAI_KEY }}" >> keys.env
 
