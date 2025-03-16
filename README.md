@@ -168,7 +168,7 @@ The following settings use the "Brian" voice from ElevenLabs:
 // ---
 ```
 
-Quality is generally higher, but note that the price is also much higher.
+Quality is [generally higher](https://huggingface.co/spaces/TTS-AGI/TTS-Arena), but note that the price is also much higher.
 With DeepInfra Kokoro, you pay about $0.80 per million characters.
 With ElevenLabs, you pay $0.30 per 1000 credits (equals 1000 characters), or $300 for 1 million credits.
 
