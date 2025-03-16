@@ -9,8 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support ElevenLabs text to speech (
+- Support ElevenLabs text to speech ([#40](https://github.com/transformrs/trv/pull/40)).
 
+### Changed
+
+- Concat images and audio in single ffmpeg command ([#35](https://github.com/transformrs/trv/pull/35)).
+
+### Fixed
+
+- Add a pause between transitions ([#38](https://github.com/transformrs/trv/pull/38)).
+- Trim the speaker notes for fewer random sounds like "uh"
 
 ## [0.5.0] - 2025-03-11
 

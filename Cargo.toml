@@ -23,7 +23,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 toml = "0.8"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-transformrs = { path = "../transformrs" }
+transformrs = 0.8
 
 [dev-dependencies]
 assert_cmd = "2"
