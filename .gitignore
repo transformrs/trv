@@ -12,6 +12,7 @@ keys.env
 _out/
 tests/_cache_out/
 tests/_compatible_out/
-tests/_google_out/
 tests/_duration_matches_out/
+tests/_elevenlabs_out/
+tests/_google_out/
 

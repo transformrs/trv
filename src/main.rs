@@ -12,6 +12,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
+use std::str::FromStr;
 use tracing::subscriber::SetGlobalDefaultError;
 use transformrs::text_to_speech::TTSConfig;
 use transformrs::Provider;
@@ -47,7 +48,10 @@ pub(crate) struct Config {
     ///
     /// Sets the speed of the voice. This is passed to the text-to-speech
     /// provider.
-    pub speed: Option<f32>,
+    pub speed: Option<f64>,
+
+    /// Text-to-speech seed.
+    pub seed: Option<u64>,
 
     /// Text-to-speech language code.
     ///
@@ -152,29 +156,6 @@ pub(crate) struct Arguments {
     cache: Option<bool>,
 }
 
-// TODO: This logic should be in the transformrs crate as `Provider::from_str`.
-fn provider_from_str(s: &str) -> Provider {
-    if s.starts_with("openai-compatible(") {
-        let s = s.strip_prefix("openai-compatible(").unwrap();
-        let s = s.strip_suffix(")").unwrap();
-        let mut domain = s.to_string();
-        if !domain.starts_with("https") {
-            if domain.contains("localhost") {
-                domain = format!("http://{}", domain);
-            } else {
-                domain = format!("https://{}", domain);
-            }
-        }
-        Provider::OpenAICompatible(domain)
-    } else if s == "google" {
-        Provider::Google
-    } else if s == "deepinfra" {
-        Provider::DeepInfra
-    } else {
-        panic!("Unsupported provider: {}. Try setting a key like `GOOGLE_KEY` and not passing `--provider`.", s);
-    }
-}
-
 /// Initialize logging with the given level.
 fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     let subscriber = tracing_subscriber::FmtSubscriber::builder()
@@ -195,6 +176,7 @@ fn tts_config(config: &Config, provider: &Provider) -> TTSConfig {
         voice: Some(config.voice.clone()),
         output_format: config.audio_format.clone(),
         speed: config.speed,
+        seed: config.seed,
         other: Some(other),
         language_code: config.language_code.clone(),
     }
@@ -213,7 +195,10 @@ pub(crate) async fn build(
 ) -> Vec<Slide> {
     let out_dir = &args.out_dir;
 
-    let provider = config.provider.as_ref().map(|p| provider_from_str(p));
+    let provider = config
+        .provider
+        .as_ref()
+        .map(|p| Provider::from_str(p).unwrap());
     let provider = provider.unwrap_or(Provider::DeepInfra);
     let tts_config = tts_config(config, &provider);
 

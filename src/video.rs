@@ -167,7 +167,7 @@ fn transition_pause(config: &Config, provider: &Provider) -> chrono::Duration {
             return chrono::Duration::milliseconds(50);
         }
     }
-    chrono::Duration::milliseconds(0)
+    chrono::Duration::milliseconds(50)
 }
 
 pub(crate) fn combine_video(
