@@ -154,6 +154,24 @@ $ trv build examples/google.typ
 
 [![Google demo video](https://transformrs.github.io/trv/google.png)](https://transformrs.github.io/trv/google.mp4)
 
+## ElevenLabs
+
+The following settings use the "Brian" voice from ElevenLabs:
+
+```typst
+#import "@preview/polylux:0.4.0": *
+
+// --- trv config:
+// provider = "elevenlabs"
+// model = "eleven_multilingual_v2"
+// voice = "nPczCjzI2devNBz1zQrb"
+// ---
+```
+
+Quality is generally higher, but note that the price is also much higher.
+With DeepInfra Kokoro, you pay about $0.80 per million characters.
+With ElevenLabs, you pay $0.30 per 1000 credits (equals 1000 characters), or $300 for 1 million credits.
+
 ## Zyphra Zonos
 
 To use the Zyphra Zonos model, you need 8 GB of VRAM.

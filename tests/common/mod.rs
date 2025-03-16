@@ -27,6 +27,9 @@ pub fn load_key(provider: &Provider) -> String {
     let file = std::fs::File::open(path).expect("Failed to open keys.env file");
     let reader = std::io::BufReader::new(file);
     let mut lines = reader.lines();
-    let key = lines.find(|line| finder(line, provider)).unwrap().unwrap();
+    let key = lines
+        .find(|line| finder(line, provider))
+        .expect("failed to find key")
+        .unwrap();
     key.split("=").nth(1).unwrap().to_string()
 }

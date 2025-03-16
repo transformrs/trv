@@ -108,6 +108,48 @@ fn openai_compatible_provider() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+fn elevenlabs_provider() -> Result<(), Box<dyn std::error::Error>> {
+    let out_dir = Path::new("tests").join("_elevenlabs_out");
+    let out_dir = out_dir.to_str().unwrap();
+    println!("out_dir: {out_dir}");
+    let key = common::load_key(&Provider::ElevenLabs);
+
+    // Not deleting the dir to avoid cargo watch going into an infinite loop.
+    let files = vec![
+        "audio/1.mp3",
+        "audio/2.mp3",
+        "audio/1.audio.cache_key",
+        "out.mp4",
+    ];
+    for file in &files {
+        let path = Path::new(out_dir).join(file);
+        if path.exists() {
+            std::fs::remove_file(&path)?;
+        }
+    }
+
+    let mut cmd = bin();
+    cmd.env("ELEVENLABS_KEY", key);
+    cmd.arg(format!("--out-dir={}", out_dir));
+    cmd.arg("--verbose");
+    cmd.arg("build");
+    cmd.arg("tests/test_elevenlabs.typ");
+    if common::is_ci() {
+        cmd.arg("--audio-codec=opus");
+    } else {
+        cmd.arg("--audio-codec=aac_at");
+    }
+    cmd.assert().success();
+
+    for file in files {
+        let path = Path::new(out_dir).join(file);
+        assert!(path.exists(), "file {} does not exist", file);
+    }
+
+    Ok(())
+}
+
+#[test]
 fn google_provider() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = Path::new("tests").join("_google_out");
     let out_dir = out_dir.to_str().unwrap();
