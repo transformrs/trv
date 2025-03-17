@@ -1,8 +1,11 @@
 use crate::path::audio_cache_key_path;
 use crate::path::audio_path;
 use crate::slide::Slide;
+use crate::Config;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::json;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use transformrs::text_to_speech::TTSConfig;
@@ -107,21 +110,71 @@ async fn generate_audio_file(
     }
 }
 
+fn tts_config(config: &Config, provider: &Provider) -> TTSConfig {
+    let mut other = HashMap::new();
+    if provider != &Provider::Google {
+        other.insert("seed".to_string(), json!(42));
+    }
+    TTSConfig {
+        voice: Some(config.voice.clone()),
+        output_format: config.audio_format.clone(),
+        speed: config.speed,
+        seed: config.seed,
+        other: Some(other),
+        language_code: config.language_code.clone(),
+    }
+}
+
+fn set_previous_and_next_text(tts_config: &mut TTSConfig, slides: &[Slide], idx: usize) {
+    let other = tts_config.other.as_mut().unwrap();
+    let n = slides.len();
+    if 1 < idx {
+        // slides is 0-indexed, while idx is 1-indexed.
+        let i = (idx - 1) - 1;
+        other.insert(
+            "previous_text".to_string(),
+            json!(slides[i].speaker_note.clone()),
+        );
+    }
+    if idx < n {
+        // slides is 0-indexed, while idx is 1-indexed.
+        let i = (idx + 1) - 1;
+        other.insert(
+            "next_text".to_string(),
+            json!(slides[i].speaker_note.clone()),
+        );
+    }
+}
+
 pub async fn generate_audio_files(
     provider: &Provider,
     dir: &str,
     slides: &Vec<Slide>,
     cache: bool,
-    config: &TTSConfig,
-    model: &Option<String>,
+    config: &Config,
     audio_ext: &str,
 ) {
     // Not using the keys from file (TODO: transformrs should support loading
     // keys from environment variables).
     let keys = transformrs::load_keys("not_used.env");
+    let mut tts_config = tts_config(config, provider);
+    let model = &config.model;
     for slide in slides {
         let idx = slide.idx;
         tracing::info!("Slide {idx}: Generating audio file...");
-        generate_audio_file(provider, &keys, dir, slide, cache, config, model, audio_ext).await;
+        if provider == &Provider::ElevenLabs {
+            set_previous_and_next_text(&mut tts_config, slides, idx);
+        }
+        generate_audio_file(
+            provider,
+            &keys,
+            dir,
+            slide,
+            cache,
+            &tts_config,
+            model,
+            audio_ext,
+        )
+        .await;
     }
 }

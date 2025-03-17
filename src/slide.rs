@@ -4,7 +4,10 @@ use serde_json::Value;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Slide {
-    pub idx: u64,
+    /// The index of the slide in the presentation.
+    ///
+    /// Counting starts at 1 and ends at n.
+    pub idx: usize,
     pub speaker_note: String,
 }
 
@@ -41,7 +44,7 @@ impl Slide {
     fn new(idx: &Value, speaker_note: &Value) -> Self {
         let idx = idx.get("v").and_then(|v| v.as_u64()).unwrap();
         // Typst generates images starting at index 1.
-        let idx = idx + 1;
+        let idx = idx as usize + 1;
         let speaker_note = speaker_note.get("v").and_then(|v| v.as_str()).unwrap();
         let speaker_note = trim_speaker_note(speaker_note);
         Self { idx, speaker_note }

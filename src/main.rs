@@ -8,13 +8,10 @@ mod watch;
 use crate::slide::Slide;
 use clap::Parser;
 use serde::Deserialize;
-use serde_json::json;
-use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
 use tracing::subscriber::SetGlobalDefaultError;
-use transformrs::text_to_speech::TTSConfig;
 use transformrs::Provider;
 use watch::watch;
 
@@ -167,21 +164,6 @@ fn init_subscriber(level: tracing::Level) -> Result<(), SetGlobalDefaultError> {
     tracing::subscriber::set_global_default(subscriber)
 }
 
-fn tts_config(config: &Config, provider: &Provider) -> TTSConfig {
-    let mut other = HashMap::new();
-    if provider != &Provider::Google {
-        other.insert("seed".to_string(), json!(42));
-    }
-    TTSConfig {
-        voice: Some(config.voice.clone()),
-        output_format: config.audio_format.clone(),
-        speed: config.speed,
-        seed: config.seed,
-        other: Some(other),
-        language_code: config.language_code.clone(),
-    }
-}
-
 pub(crate) fn audio_format(config: &Config) -> String {
     config.audio_format.clone().unwrap_or("mp3".to_string())
 }
@@ -200,7 +182,6 @@ pub(crate) async fn build(
         .as_ref()
         .map(|p| Provider::from_str(p).unwrap());
     let provider = provider.unwrap_or(Provider::DeepInfra);
-    let tts_config = tts_config(config, &provider);
 
     let slides = slide::slides(input.to_str().unwrap());
     if slides.is_empty() {
@@ -209,16 +190,7 @@ pub(crate) async fn build(
     image::generate_images(&input, out_dir);
     let audio_ext = audio_format(config);
     let cache = args.cache.unwrap();
-    audio::generate_audio_files(
-        &provider,
-        out_dir,
-        &slides,
-        cache,
-        &tts_config,
-        &config.model,
-        &audio_ext,
-    )
-    .await;
+    audio::generate_audio_files(&provider, out_dir, &slides, cache, config, &audio_ext).await;
     let output = "out.mp4";
     if release {
         let audio_codec = audio_codec.unwrap();

@@ -5,8 +5,9 @@
 
 // --- trv config:
 // provider = "elevenlabs"
-// model = "eleven_multilingual_v2"
+// model = "eleven_turbo_v2_5"
 // voice = "nPczCjzI2devNBz1zQrb"
+// seed = 42
 // ---
 
 #slide[
