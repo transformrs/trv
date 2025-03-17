@@ -3,8 +3,11 @@ use crate::path::audio_path;
 use crate::slide::Slide;
 use serde::Deserialize;
 use serde::Serialize;
+use crate::Config;
 use std::fs::File;
 use std::io::Write;
+use std::collections::HashMap;
+use serde_json::json;
 use transformrs::text_to_speech::TTSConfig;
 use transformrs::Key;
 use transformrs::Keys;
@@ -107,21 +110,38 @@ async fn generate_audio_file(
     }
 }
 
+fn tts_config(config: &Config, provider: &Provider) -> TTSConfig {
+    let mut other = HashMap::new();
+    if provider != &Provider::Google {
+        other.insert("seed".to_string(), json!(42));
+    }
+    TTSConfig {
+        voice: Some(config.voice.clone()),
+        output_format: config.audio_format.clone(),
+        speed: config.speed,
+        seed: config.seed,
+        other: Some(other),
+        language_code: config.language_code.clone(),
+    }
+}
+
+
 pub async fn generate_audio_files(
     provider: &Provider,
     dir: &str,
     slides: &Vec<Slide>,
     cache: bool,
-    config: &TTSConfig,
-    model: &Option<String>,
+    config: &Config,
     audio_ext: &str,
 ) {
     // Not using the keys from file (TODO: transformrs should support loading
     // keys from environment variables).
     let keys = transformrs::load_keys("not_used.env");
+    let tts_config = tts_config(config, &provider);
+    let model = &config.model;
     for slide in slides {
         let idx = slide.idx;
         tracing::info!("Slide {idx}: Generating audio file...");
-        generate_audio_file(provider, &keys, dir, slide, cache, config, model, audio_ext).await;
+        generate_audio_file(provider, &keys, dir, slide, cache, &tts_config, model, audio_ext).await;
     }
 }

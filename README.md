@@ -163,6 +163,7 @@ The following settings use the "Brian" voice from ElevenLabs:
 
 // --- trv config:
 // provider = "elevenlabs"
+// seed = 42
 // model = "eleven_multilingual_v2"
 // voice = "nPczCjzI2devNBz1zQrb"
 // ---
