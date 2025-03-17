@@ -129,15 +129,19 @@ fn set_previous_and_next_text(tts_config: &mut TTSConfig, slides: &[Slide], idx:
     let other = tts_config.other.as_mut().unwrap();
     let n = slides.len();
     if 1 < idx {
+        // slides is 0-indexed, while idx is 1-indexed.
+        let i = (idx - 1) - 1;
         other.insert(
             "previous_text".to_string(),
-            json!(slides[idx - 1].speaker_note.clone()),
+            json!(slides[i].speaker_note.clone()),
         );
     }
     if idx < n {
+        // slides is 0-indexed, while idx is 1-indexed.
+        let i = (idx + 1) - 1;
         other.insert(
             "next_text".to_string(),
-            json!(slides[idx + 1].speaker_note.clone()),
+            json!(slides[i].speaker_note.clone()),
         );
     }
 }
