@@ -8,13 +8,10 @@ mod watch;
 use crate::slide::Slide;
 use clap::Parser;
 use serde::Deserialize;
-use serde_json::json;
-use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
 use tracing::subscriber::SetGlobalDefaultError;
-use transformrs::text_to_speech::TTSConfig;
 use transformrs::Provider;
 use watch::watch;
 
@@ -193,15 +190,7 @@ pub(crate) async fn build(
     image::generate_images(&input, out_dir);
     let audio_ext = audio_format(config);
     let cache = args.cache.unwrap();
-    audio::generate_audio_files(
-        &provider,
-        out_dir,
-        &slides,
-        cache,
-        &config,
-        &audio_ext,
-    )
-    .await;
+    audio::generate_audio_files(&provider, out_dir, &slides, cache, config, &audio_ext).await;
     let output = "out.mp4";
     if release {
         let audio_codec = audio_codec.unwrap();

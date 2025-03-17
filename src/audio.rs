@@ -1,13 +1,13 @@
 use crate::path::audio_cache_key_path;
 use crate::path::audio_path;
 use crate::slide::Slide;
+use crate::Config;
 use serde::Deserialize;
 use serde::Serialize;
-use crate::Config;
+use serde_json::json;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
-use std::collections::HashMap;
-use serde_json::json;
 use transformrs::text_to_speech::TTSConfig;
 use transformrs::Key;
 use transformrs::Keys;
@@ -125,6 +125,22 @@ fn tts_config(config: &Config, provider: &Provider) -> TTSConfig {
     }
 }
 
+fn set_previous_and_next_text(tts_config: &mut TTSConfig, slides: &[Slide], idx: usize) {
+    let other = tts_config.other.as_mut().unwrap();
+    let n = slides.len();
+    if 1 < idx {
+        other.insert(
+            "previous_text".to_string(),
+            json!(slides[idx - 1].speaker_note.clone()),
+        );
+    }
+    if idx < n {
+        other.insert(
+            "next_text".to_string(),
+            json!(slides[idx + 1].speaker_note.clone()),
+        );
+    }
+}
 
 pub async fn generate_audio_files(
     provider: &Provider,
@@ -137,11 +153,24 @@ pub async fn generate_audio_files(
     // Not using the keys from file (TODO: transformrs should support loading
     // keys from environment variables).
     let keys = transformrs::load_keys("not_used.env");
-    let tts_config = tts_config(config, &provider);
+    let mut tts_config = tts_config(config, provider);
     let model = &config.model;
     for slide in slides {
         let idx = slide.idx;
         tracing::info!("Slide {idx}: Generating audio file...");
-        generate_audio_file(provider, &keys, dir, slide, cache, &tts_config, model, audio_ext).await;
+        if provider == &Provider::ElevenLabs {
+            set_previous_and_next_text(&mut tts_config, slides, idx);
+        }
+        generate_audio_file(
+            provider,
+            &keys,
+            dir,
+            slide,
+            cache,
+            &tts_config,
+            model,
+            audio_ext,
+        )
+        .await;
     }
 }

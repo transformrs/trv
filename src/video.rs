@@ -137,7 +137,7 @@ enum Stream {
 
 fn stream_index(slide: &Slide, stream: Stream) -> usize {
     // For example, the first stream will be at 0, the second at 2, etc.
-    let index = 2 * (slide.idx - 1) as usize;
+    let index = 2 * (slide.idx - 1);
     match stream {
         // For example, the first audio is at index 0, the second at index 2, etc.
         Stream::Audio => index,
