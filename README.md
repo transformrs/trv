@@ -231,6 +231,7 @@ The videos created by `trv` consist only of static images.
 This might seem limiting, but as long as the content of the video is high, static images should be fine.
 Here are some YouTubers that have hundreds of thousands to millions of views with only static images:
 
+- [Asianometry](https://www.youtube.com/watch?v=US6YO-IK64w)
 - [Perun](https://www.youtube.com/@PerunAU)
 - [No Boilerplate](https://www.youtube.com/@NoBoilerplate)
 - [The Histocrat](https://www.youtube.com/@TheHistocrat)
