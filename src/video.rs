@@ -157,6 +157,10 @@ fn transition_pause(config: &Config, provider: &Provider) -> chrono::Duration {
     if provider == &Provider::Google {
         return chrono::Duration::milliseconds(200);
     }
+    if provider == &Provider::ElevenLabs {
+        // This should be handled by the previous and next text.
+        return chrono::Duration::milliseconds(0);
+    }
     if let Some(model) = &config.model {
         // Nor does the Zyphra Zonos model.
         if model.to_lowercase().contains("zonos") {
@@ -167,6 +171,7 @@ fn transition_pause(config: &Config, provider: &Provider) -> chrono::Duration {
             return chrono::Duration::milliseconds(50);
         }
     }
+    // A very small pause (1/4th of a sentence break) just to be sure.
     chrono::Duration::milliseconds(50)
 }
 
