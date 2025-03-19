@@ -125,6 +125,12 @@ pub(crate) struct WatchArgs {
     pre_typst: Option<String>,
 }
 
+#[derive(Clone, Debug, Parser)]
+pub(crate) struct NotesArgs {
+    /// Path to the Typst input file.
+    input: PathBuf,
+}
+
 #[derive(Clone, Debug, clap::Subcommand)]
 enum Task {
     /// Build the video.
@@ -132,6 +138,11 @@ enum Task {
 
     /// Watch the current directory and rebuild the video on change.
     Watch(WatchArgs),
+
+    /// Extract the speaker notes from the input file.
+    ///
+    /// This can be useful to review the narration.
+    Notes(NotesArgs),
 }
 
 #[derive(Parser)]
@@ -231,6 +242,17 @@ async fn main() {
         Task::Watch(ref watch_args) => {
             let config = parse_config(&watch_args.input);
             watch(watch_args, &config, &args).await
+        }
+        Task::Notes(ref notes_args) => {
+            let input = notes_args.input.to_str().unwrap();
+            let slides = slide::slides(input);
+            for (i, slide) in slides.iter().enumerate() {
+                if i == 0 {
+                    println!("{}", slide.speaker_note);
+                } else {
+                    println!("\n{}", slide.speaker_note);
+                }
+            }
         }
     };
 }

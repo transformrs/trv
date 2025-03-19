@@ -276,3 +276,18 @@ fn test_duration_matches() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_notes() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = bin();
+    cmd.arg("notes");
+    cmd.arg("tests/test_notes.typ");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "What if you could show code in a video?",
+        ))
+        .stdout(predicate::str::contains("For example, take this code."));
+
+    Ok(())
+}

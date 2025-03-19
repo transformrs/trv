@@ -215,16 +215,6 @@ This will automatically create slides with 1080 x 1920 resolution since Typst is
 Next, ffmpeg will automatically scale the video to a height of 1920p so in this case the height will not be changed.
 For landscape videos, it might scale the image down to 1920p.
 
-## Subtitles
-
-To add subtitles to the video, you can use OpenAI's [`whisper`](https://github.com/openai/whisper):
-
-```raw
-$ whisper _out/out.mp4 -f srt --model small --language=en
-```
-
-This will create a `out.srt` file with the subtitles.
-
 ## Static Videos
 
 The videos created by `trv` consist only of static images.
@@ -247,3 +237,24 @@ Static images with a talking-head:
 Static images with a computer-generated moving hand:
 
 - [Simplilearn](https://www.youtube.com/@SimplilearnOfficial)
+
+## Subtitles
+
+To add subtitles to the video, you can use OpenAI's [`whisper`](https://github.com/openai/whisper):
+
+```raw
+$ whisper _out/out.mp4 -f srt --model small --language=en
+```
+
+This will create a `out.srt` file with the subtitles.
+
+## Extracting the Speaker Notes
+
+The speaker notes (narration) can be extracted from the Typst file with the `notes` command.
+For example:
+
+```raw
+$ trv notes presentation.typ
+```
+
+This will print the speaker notes to the terminal.
