@@ -20,6 +20,8 @@ Transform slides and speaker notes into video.
 $ cargo install trv
 ```
 
+It also requires [`ffmpeg`](https://ffmpeg.org/) and [`typst`](https://github.com/typst/typst?tab=readme-ov-file#installation) to be installed.
+
 ## Usage
 
 This tool is designed to work with [Typst](https://github.com/typst/typst) presentations.
@@ -172,6 +174,10 @@ The following settings use the "Brian" voice from ElevenLabs:
 Quality is [generally higher](https://huggingface.co/spaces/TTS-AGI/TTS-Arena), but note that the price is also much higher.
 With DeepInfra Kokoro, you pay about $0.80 per million characters.
 With ElevenLabs, you pay $0.30 per 1000 credits (equals 1000 characters), or $300 for 1 million credits.
+
+Here is a YouTube video that was made with ElevenLabs:
+
+[![ElevenLabs demo](https://img.youtube.com/vi/Ni-dKlCpnb4/0.jpg)](https://www.youtube.com/watch?v=Ni-dKlCpnb4)
 
 ## Zyphra Zonos
 
