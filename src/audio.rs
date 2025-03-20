@@ -13,7 +13,7 @@ use transformrs::Key;
 use transformrs::Keys;
 use transformrs::Provider;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct AudioCacheKey {
     text: String,
     config: TTSConfig,
@@ -39,13 +39,13 @@ fn is_cached(dir: &str, slide: &Slide, config: &TTSConfig, audio_ext: &str) -> b
         return false;
     }
     let stored_key = std::fs::read_to_string(txt_path).unwrap();
+    let stored_key = serde_json::from_str::<AudioCacheKey>(&stored_key).unwrap();
     let text = slide.speaker_note.clone();
     let cache_key = AudioCacheKey {
         text,
         config: config.clone(),
     };
-    let current_info = serde_json::to_string(&cache_key).unwrap();
-    stored_key == current_info
+    stored_key == cache_key
 }
 
 #[allow(clippy::too_many_arguments)]
