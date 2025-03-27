@@ -15,21 +15,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Not using non-official GitHub Actions for security reasons.
     steps:
       - uses: actions/checkout@v4
 
       - run: rustup update stable
       - run: rustup default stable
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/cache@v4
         with:
-          prefix-key: 'examples'
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-examples-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: FedericoCarboni/setup-ffmpeg@v3
+      - run: sudo apt-get install -y ffmpeg
 
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: typst-cli
+      - run: cargo install cargo-binstall
+
+      - run: cargo binstall typst-cli
 
       - run: sudo apt-get install -y imagemagick
 
