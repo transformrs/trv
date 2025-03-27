@@ -32,7 +32,6 @@ jobs:
             target/
         key: ${{ runner.os }}-cargo-examples-${{ hashFiles('**/Cargo.lock') }}
 
-
       - run: sudo apt-get install -y ffmpeg
 
       - run: cargo install cargo-binstall
