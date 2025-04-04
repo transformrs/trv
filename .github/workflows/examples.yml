@@ -35,6 +35,13 @@ jobs:
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > keys.env
           echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> keys.env
       - run: cargo install --debug --git https://github.com/rikhuijzer/jas
+      - run: |
+          TOKEN="$GITHUB_TOKEN"
+          if [ -z "$TOKEN" ]; then
+            echo "Token is not set."
+          else
+            echo "Token is set."
+          fi
       - run: >
           jas install
           --gh typst/typst@v0.13.1
