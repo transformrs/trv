@@ -18,10 +18,8 @@ jobs:
     # Not using non-official GitHub Actions for security reasons.
     steps:
       - uses: actions/checkout@v4
-
       - run: rustup update stable
       - run: rustup default stable
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -31,25 +29,20 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-examples-${{ hashFiles('**/Cargo.lock') }}
-
       - run: sudo apt-get install -y ffmpeg
-
-      - run: cargo install cargo-binstall
-
-      - run: cargo binstall typst-cli
-
+      - run: cargo install --debug --git https://github.com/rikhuijzer/jas
+      - run: >
+          jas install
+          --gh typst/typst@v0.13.1
+          --sha 7d214bfeffc2e585dc422d1a09d2b144969421281e8c7f5d784b65fc69b5673f
       - run: sudo apt-get install -y imagemagick
-
-      - run: cargo install --path .
-
+      - run: cargo install --debug --path .
       - run: |
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > keys.env
           echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> keys.env
-
       - run: |
           mkdir _public
           echo "<html><body><h1>Home page for the examples</h1></body></html>" > _public/index.html
-
       - name: Run examples
         run: |
             convert -size 500x500 xc:none -fill white -draw "polygon 150,100 150,400 400,250" play_button.png
@@ -73,10 +66,8 @@ jobs:
             mv _out/out.mp4 _public/zonos.mp4
             convert _out/image/1.png play_button.png -gravity center -composite tmp.png
             mv tmp.png _public/zonos.png
-
       - name: Cleanup
         run: rm keys.env
-
       - name: Upload static files
         id: deployment
         uses: actions/upload-pages-artifact@v3
@@ -94,7 +85,6 @@ jobs:
     permissions:
         pages: write
         id-token: write
-
     steps:
       - uses: actions/deploy-pages@v4
         id: deployment
