@@ -14,10 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - run: rustup update stable
       - run: rustup default stable
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -27,26 +25,22 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
-
       - uses: actions/cache@v4
         with:
           path: ~/.cache/typst
           key: typst
-
+      - run: cargo install --debug --git https://github.com/rikhuijzer/jas
+      - run: >
+          jas install
+          --gh typst/typst@v0.13.1
+          --sha 7d214bfeffc2e585dc422d1a09d2b144969421281e8c7f5d784b65fc69b5673f
       - run: sudo apt-get install -y ffmpeg
-
-      - run: cargo install cargo-binstall
-
-      - run: cargo binstall typst-cli
-
       - run: |
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > keys.env
           echo "ELEVENLABS_KEY=${{ secrets.ELEVENLABS_KEY }}" >> keys.env
           echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> keys.env
           echo "OPENAI_KEY=${{ secrets.OPENAI_KEY }}" >> keys.env
-
       - run: cargo test --all-features
-
       - name: Cleanup before Post Run
         run: rm keys.env
 
@@ -54,28 +48,19 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install jas
-        run: |
-          cargo install --debug jas@0.1.0
-          echo "$HOME/.jas/bin" >> $GITHUB_PATH
-
-      - name: Install Typos
-        run: |
-          jas install \
-            --gh crate-ci/typos@v1.31.1 \
-            --sha f683c2abeaff70379df7176110100e18150ecd17a4b9785c32908aca11929993
-
+      - run: cargo install --debug --git https://github.com/rikhuijzer/jas
+      - run: >
+          jas install
+          --gh crate-ci/typos@v1.31.1 \
+          --sha f683c2abeaff70379df7176110100e18150ecd17a4b9785c32908aca11929993
       - run: typos .
 
   fmt:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
       - run: rustup update stable
@@ -87,7 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
       - run: rustup update stable
