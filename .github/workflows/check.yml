@@ -30,10 +30,11 @@ jobs:
           path: ~/.cache/typst
           key: typst
       - run: cargo install --debug --git https://github.com/rikhuijzer/jas
-      - run: >
-          jas install
-          --gh typst/typst@v0.13.1
-          --sha 7d214bfeffc2e585dc422d1a09d2b144969421281e8c7f5d784b65fc69b5673f
+      - run: |
+          jas install --gh typst/typst@v0.13.1 \
+            --sha 7d214bfeffc2e585dc422d1a09d2b144969421281e8c7f5d784b65fc69b5673f
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: sudo apt-get install -y ffmpeg
       - run: |
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > keys.env
@@ -51,11 +52,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: cargo install --debug --git https://github.com/rikhuijzer/jas
-      - run: >
-          jas install
-          --gh crate-ci/typos@v1.31.1
-          --sha f683c2abeaff70379df7176110100e18150ecd17a4b9785c32908aca11929993
-        # To reduce the chance of rate limiting.
+      - run: |
+          jas install --gh crate-ci/typos@v1.31.1 \
+            --sha f683c2abeaff70379df7176110100e18150ecd17a4b9785c32908aca11929993
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: typos .
