@@ -30,16 +30,16 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-examples-${{ hashFiles('**/Cargo.lock') }}
       - run: sudo apt-get install -y ffmpeg
-      - run: cargo install --debug --git https://github.com/rikhuijzer/jas
-      - run: >
-          jas install
-          --gh typst/typst@v0.13.1
-          --sha 7d214bfeffc2e585dc422d1a09d2b144969421281e8c7f5d784b65fc69b5673f
       - run: sudo apt-get install -y imagemagick
       - run: cargo install --debug --path .
       - run: |
           echo "DEEPINFRA_KEY=${{ secrets.DEEPINFRA_KEY }}" > keys.env
           echo "GOOGLE_KEY=${{ secrets.GOOGLE_KEY }}" >> keys.env
+      - run: cargo install --debug --git https://github.com/rikhuijzer/jas
+      - run: >
+          jas install
+          --gh typst/typst@v0.13.1
+          --sha 7d214bfeffc2e585dc422d1a09d2b144969421281e8c7f5d784b65fc69b5673f
       - run: |
           mkdir _public
           echo "<html><body><h1>Home page for the examples</h1></body></html>" > _public/index.html
