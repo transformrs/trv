@@ -28,7 +28,7 @@ jobs:
         with:
           path: ~/.cache/typst
           key: typst
-      - run: cargo install --debug jas@0.2.0
+      - run: cargo install --debug jas@0.3.0
       - run: >
           jas install
           --gh typst/typst@v0.13.1
@@ -37,10 +37,7 @@ jobs:
       - run: >
           jas install
           --url https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
-          --sha abda8d77ce8309141f83ab8edf0596834087c52467f6badf376a6a2a4c87cf67
-      - run: >
-          jas install
-          --url https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          --archive-filename ffmpeg
           --archive-filename ffprobe
           --sha abda8d77ce8309141f83ab8edf0596834087c52467f6badf376a6a2a4c87cf67
       - run: |
@@ -59,7 +56,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: cargo install --debug --git https://github.com/rikhuijzer/jas
+      - run: cargo install --debug jas@0.3.0
       - run: >
           jas install
           --gh crate-ci/typos@v1.31.1
